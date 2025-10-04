@@ -1,0 +1,82 @@
+// Use the classic 'apply' syntax which is most compatible with Gradle 4.5
+apply plugin: 'java'
+apply plugin: 'application'
+
+// In Gradle 4.5, these properties are set directly on the project
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+// This logic is fine, but the final assignment must be at the root level
+if (!hasProperty('mainClass')) {
+    ext.mainClass = 'Ic2ExpReactorPlanner.ReactorPlannerFrame'
+}
+// In Gradle 4.5, this property is also set directly on the project
+mainClassName = ext.mainClass
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs 'src'
+        }
+        resources {
+            srcDir 'src'
+        }
+    }
+
+    test {
+        java {
+            srcDir 'test'
+        }
+        resources {
+            srcDir 'testResources'
+        }
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // This fix is still required for Gradle 4.5: 'testCompile' is replaced with 'testImplementation'
+    testImplementation group: 'junit', name: 'junit', version: '4.10'
+}
+
+jar {
+    from('src') {
+        include 'assets/**/*.png'
+        include 'Ic2ExpReactorPlanner/Bundle*.properties'
+    }
+    manifest {
+        attributes 'Main-Class': mainClassName
+    }
+}
+
+task processAssets(type: Copy) {
+    from('src') {
+        include 'assets/**/*.png'
+        include 'Ic2ExpReactorPlanner/Bundle*.properties'
+    }
+    into 'build/classes/java/main'
+}
+
+run {
+    dependsOn processAssets
+}
+
+task processSource(type: Copy) {
+    from sourceSets.main.java
+    def version = project.hasProperty('erpVersion') ? erpVersion : 'dev'
+    inputs.property 'erpVersion', version
+    filter { line -> line.replaceAll('@VERSION@', version) }
+    into "$buildDir/generated-src"
+}
+
+compileJava {
+    dependsOn processSource
+    source = processSource.outputs.files
+}
