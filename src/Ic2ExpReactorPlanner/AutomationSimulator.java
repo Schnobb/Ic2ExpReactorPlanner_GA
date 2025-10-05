@@ -219,7 +219,7 @@ public class AutomationSimulator extends SwingWorker<Void, String> {
                         }
                     }
                 }
-                lastEUoutput = reactor.getCurrentEUoutput();
+                lastEUoutput = reactor.getCurrentEUOutput();
                 totalEUoutput += lastEUoutput;
                 lastHeatOutput = reactor.getVentedHeat();
                 totalHeatOutput += lastHeatOutput;
@@ -260,7 +260,7 @@ public class AutomationSimulator extends SwingWorker<Void, String> {
                     if (reactor.isFluid()) {
                         csvOut.printf(getI18n("CSVData.EntryHUOutput"), reactor.getVentedHeat() * 40);
                     } else {
-                        csvOut.printf(getI18n("CSVData.EntryEUOutput"), reactor.getCurrentEUoutput());
+                        csvOut.printf(getI18n("CSVData.EntryEUOutput"), reactor.getCurrentEUOutput());
                     }
                     for (int row = 0; row < 6; row++) {
                         for (int col = 0; col < 9; col++) {

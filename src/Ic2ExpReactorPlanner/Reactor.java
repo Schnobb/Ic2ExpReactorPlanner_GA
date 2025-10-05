@@ -19,7 +19,7 @@ public class Reactor {
     
     private final ReactorItem[][] grid = new ReactorItem[6][9];
     
-    private double currentEUoutput = 0.0;
+    private double currentEUOutput = 0.0;
     
     private double currentHeat = 0.0;
     
@@ -53,7 +53,7 @@ public class Reactor {
     
     private int maxSimulationTicks = (int)5e6;
     
-    // maximum paramatter types for a reactor component (current initial heat, automation threshold, reactor pause
+    // maximum parameter types for a reactor component (current initial heat, automation threshold, reactor pause
     private static final int MAX_PARAM_TYPES = 3;
 
     public static final int MAX_COMPONENT_HEAT = 1_080_000;
@@ -88,8 +88,8 @@ public class Reactor {
     /**
      * @return the amount of EU output in the reactor tick just simulated.
      */
-    public double getCurrentEUoutput() {
-        return currentEUoutput;
+    public double getCurrentEUOutput() {
+        return currentEUOutput;
     }
 
     /**
@@ -138,14 +138,14 @@ public class Reactor {
      * @param amount the amount of EU to output over 1 reactor tick (20 game ticks).
      */
     public void addEUOutput(final double amount) {
-        currentEUoutput += amount;
+        currentEUOutput += amount;
     }
     
     /**
      * clears the EU output (presumably to start simulating a new reactor tick).
      */
     public void clearEUOutput() {
-        currentEUoutput = 0.0;
+        currentEUOutput = 0.0;
     }
     
     /**

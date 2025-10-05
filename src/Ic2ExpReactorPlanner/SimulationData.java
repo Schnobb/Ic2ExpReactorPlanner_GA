@@ -77,4 +77,8 @@ public class SimulationData {
     
     // Automation details
     public MaterialsList replacedItems = new MaterialsList();
+
+    // Simulation metadata
+    public long startTime = 0;
+    public long endTime = 0;
 }

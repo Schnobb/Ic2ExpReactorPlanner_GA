@@ -1,16 +1,12 @@
-// Use the classic 'apply' syntax which is most compatible with Gradle 4.5
 apply plugin: 'java'
 apply plugin: 'application'
 
-// In Gradle 4.5, these properties are set directly on the project
-sourceCompatibility = 1.7
-targetCompatibility = 1.7
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
-// This logic is fine, but the final assignment must be at the root level
 if (!hasProperty('mainClass')) {
     ext.mainClass = 'Ic2ExpReactorPlanner.ReactorPlannerFrame'
 }
-// In Gradle 4.5, this property is also set directly on the project
 mainClassName = ext.mainClass
 
 tasks.withType(JavaCompile) {
@@ -42,7 +38,6 @@ repositories {
 }
 
 dependencies {
-    // This fix is still required for Gradle 4.5: 'testCompile' is replaced with 'testImplementation'
     testImplementation group: 'junit', name: 'junit', version: '4.10'
 }
 
