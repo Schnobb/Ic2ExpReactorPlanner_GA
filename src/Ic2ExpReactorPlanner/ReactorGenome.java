@@ -1,10 +1,8 @@
 package Ic2ExpReactorPlanner;
 
+import Ic2ExpReactorPlanner.components.FuelRod;
 import Ic2ExpReactorPlanner.components.ReactorItem;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.Random;
 
 public class ReactorGenome {
@@ -23,13 +21,12 @@ public class ReactorGenome {
     private final int[] reactorLayout;
 
     public ReactorGenome() {
-        fuelType = 0;
+        fuelType = -1;
         reactorLayout = new int[REACTOR_GRID_SIZE];
     }
 
-    public static ReactorGenome randomGenome() {
+    public static ReactorGenome randomGenome(Random random) {
         ReactorGenome genome = new ReactorGenome();
-        Random random = new Random();
 
         genome.fuelType = validFuels[random.nextInt(validFuels.length)];
         for (int i = 0; i < genome.reactorLayout.length; i++)
@@ -39,36 +36,13 @@ public class ReactorGenome {
     }
 
     public static String serialize(ReactorGenome genome) {
-        Base64.Encoder b64Encoder = Base64.getUrlEncoder();
-        StringBuilder buffer = new StringBuilder();
-
-        buffer.append(genome.fuelType).append("|");
-
-        for (int i = 0; i < genome.reactorLayout.length; i++) {
-            buffer.append(genome.reactorLayout[i]);
-
-            if (i < genome.reactorLayout.length - 1)
-                buffer.append(",");
-        }
-
-        return b64Encoder.encodeToString(buffer.toString().getBytes(StandardCharsets.UTF_8));
+        return genome.toReactor().getCode();
     }
 
-    public static ReactorGenome deserialize(String serializedGenome) {
-        ReactorGenome genome = new ReactorGenome();
-
-        Base64.Decoder urlDecoder = Base64.getUrlDecoder();
-        String buffer = new String(urlDecoder.decode(serializedGenome), StandardCharsets.UTF_8);
-
-        String[] genomeData = buffer.split("\\|");
-        genome.fuelType = Integer.parseInt(genomeData[0]);
-
-        String[] genomeLayoutData = genomeData[1].split(",");
-        for (int i = 0; i < genome.reactorLayout.length; i++) {
-            genome.reactorLayout[i] = Integer.parseInt(genomeLayoutData[i]);
-        }
-
-        return genome;
+    public static ReactorGenome deserialize(String erpCode) {
+        Reactor reactor = new Reactor();
+        reactor.setCode(erpCode);
+        return fromReactor(reactor);
     }
 
     public static ReactorGenome fromReactor(Reactor reactor) {
@@ -85,9 +59,10 @@ public class ReactorGenome {
                     componentId = component.id;
 
                 ReactorItem defaultComponent = ComponentFactory.getDefaultComponent(componentId);
-                if (defaultComponent != null && defaultComponent.generateEnergy() > 0) {
+                if (defaultComponent instanceof FuelRod) {
                     if (fuelType < 0) {
                         fuelType = componentId;
+                        genome.fuelType = fuelType;
                     }
 
                     genome.reactorLayout[i] = FUEL_VALUE;
@@ -102,8 +77,27 @@ public class ReactorGenome {
         return genome;
     }
 
-    public static ReactorGenome crossBreed(ReactorGenome parentA, ReactorGenome parentB) {
-        throw new NotImplementedException();
+    public static ReactorGenome crossBreed(ReactorGenome parentA, ReactorGenome parentB, Random random) {
+        ReactorGenome newGenome = new ReactorGenome();
+
+        newGenome.fuelType = parentA.fuelType;
+
+        int crossoverPoint1 = random.nextInt(newGenome.reactorLayout.length);
+        int crossoverPoint2 = random.nextInt(newGenome.reactorLayout.length);
+
+        int crossoverStart = Math.min(crossoverPoint1, crossoverPoint2);
+        int crossoverEnd = Math.max(crossoverPoint1, crossoverPoint2);
+
+        for(int i = 0; i < newGenome.reactorLayout.length; i++){
+            int geneValue = parentA.reactorLayout[i];
+
+            if(i >= crossoverStart && i < crossoverEnd)
+                geneValue = parentB.reactorLayout[i];
+
+            newGenome.reactorLayout[i] = geneValue;
+        }
+
+        return newGenome;
     }
 
     public Reactor toReactor() {
@@ -131,11 +125,29 @@ public class ReactorGenome {
         return reactor;
     }
 
-    public void TryMutation() {
-        Random random = new Random();
-
+    public void TryMutation(Random random) {
         // fuel type mutation
+        if(random.nextDouble() < PROB_MUTATE_FUEL_TYPE)
+            fuelType = validFuels[random.nextInt(validFuels.length)];
 
         // layout mutation
+        if(random.nextDouble() < PROB_MUTATE_LAYOUT)
+            reactorLayout[random.nextInt(reactorLayout.length)] = validComponents[random.nextInt(validComponents.length)];
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder buffer = new StringBuilder();
+
+        buffer.append(fuelType).append("|");
+
+        for (int i = 0; i < reactorLayout.length; i++) {
+            buffer.append(reactorLayout[i]);
+
+            if (i < reactorLayout.length - 1)
+                buffer.append(",");
+        }
+
+        return buffer.toString();
     }
 }

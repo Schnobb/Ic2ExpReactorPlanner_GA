@@ -387,7 +387,7 @@ public class ReactorSimulator {
 //                csvOut.close();
 //            }
 //        }
-        long endTime = System.nanoTime();
+        data.endTime = System.nanoTime();
         return data;
     }
 
