@@ -1,0 +1,25 @@
+{
+  "phaseLengthGenerations": 250,
+  "mutation": {
+    "refinement": {
+      "probabilityFuelMutation": 0.001,
+      "probabilityLayoutMutation": 0.025,
+      "probabilityLayoutPerSlotMutation": 0
+    },
+    "exploration": {
+      "probabilityFuelMutation": 0.01,
+      "probabilityLayoutMutation": 0,
+      "probabilityLayoutPerSlotMutation": 0.005
+    }
+  },
+  "components": {
+    "valid": [ -1, 999, 10, 11, 12, 13, 18, 19, 20, 35 ]
+  },
+  "fuels": {
+    "valid": [ 1, 2, 3, 4, 5, 6, 26, 27, 28 ]
+  },
+  "reactor": {
+    "rowCount": 6,
+    "colCount": 9
+  }
+}
