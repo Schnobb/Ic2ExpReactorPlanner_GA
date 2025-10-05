@@ -3,6 +3,8 @@ package Ic2ExpReactorPlanner;
 import Ic2ExpReactorPlanner.components.FuelRod;
 import Ic2ExpReactorPlanner.components.ReactorItem;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Random;
 
 public class ReactorGenome {
@@ -36,13 +38,26 @@ public class ReactorGenome {
     }
 
     public static String serialize(ReactorGenome genome) {
-        return genome.toReactor().getCode();
+        Base64.Encoder b64Encoder = Base64.getUrlEncoder();
+        String buffer = genome.toString();
+        return b64Encoder.encodeToString(buffer.getBytes(StandardCharsets.UTF_8));
     }
 
-    public static ReactorGenome deserialize(String erpCode) {
-        Reactor reactor = new Reactor();
-        reactor.setCode(erpCode);
-        return fromReactor(reactor);
+    public static ReactorGenome deserialize(String serializedGenome) {
+        ReactorGenome genome = new ReactorGenome();
+
+        Base64.Decoder urlDecoder = Base64.getUrlDecoder();
+        String buffer = new String(urlDecoder.decode(serializedGenome), StandardCharsets.UTF_8);
+
+        String[] genomeData = buffer.split("\\|");
+        genome.fuelType = Integer.parseInt(genomeData[0]);
+
+        String[] genomeLayoutData = genomeData[1].split(",");
+        for (int i = 0; i < genome.reactorLayout.length; i++) {
+            genome.reactorLayout[i] = Integer.parseInt(genomeLayoutData[i]);
+        }
+
+        return genome;
     }
 
     public static ReactorGenome fromReactor(Reactor reactor) {
