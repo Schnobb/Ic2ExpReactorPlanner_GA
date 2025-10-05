@@ -13,7 +13,7 @@ public class GAConfig {
     public FuelConfig fuels;
     public ReactorConfig reactor;
 
-    public static final String DEFAULT_CONFIG_FILE_NAME = "testResources/ga_default_config.json";
+    public static final String DEFAULT_CONFIG_FILE_NAME = "ga_default_config.json";
 
     public static class MutationConfig {
         public PhaseProbabilities refinement;

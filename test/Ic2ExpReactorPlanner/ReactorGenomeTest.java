@@ -2,6 +2,8 @@ package Ic2ExpReactorPlanner;
 
 import org.junit.Test;
 
+import java.util.Arrays;
+
 import static org.junit.Assert.*;
 
 public class ReactorGenomeTest {
@@ -48,5 +50,35 @@ public class ReactorGenomeTest {
         // Asserts
         assertNotNull("ReactorGenom.toReactor() should not be null", reactorC);
         assertEquals("ERP Code should match avec conversion to and from ReactorGenome", reactorA.getCode(), reactorC.getCode());
+    }
+
+    @Test
+    public void testCrossBreed_ShouldCombineParentsAtPredictablePoints() {
+        // Setup
+        GAConfig config = GAConfig.loadConfig(null);
+        assertNotNull("Test setup failed: Could not load config", config);
+
+        MockRandom mockRandom = new MockRandom();
+        mockRandom.setIntValues(10, 25);
+
+        ReactorGenome parentA = new ReactorGenome(config);
+        Arrays.fill(parentA.getReactorLayout(), 1);
+
+        ReactorGenome parentB = new ReactorGenome(config);
+        Arrays.fill(parentB.getReactorLayout(), 2);
+
+        // Test
+        ReactorGenome child = ReactorGenome.crossBreed(config, parentA, parentB, mockRandom);
+
+        // Asserts
+        for (int i = 0; i < child.getReactorLayout().length; i++) {
+            int expectedValue;
+            if (i >= 10 && i < 25) {
+                expectedValue = 2; // This section should come from Parent B
+            } else {
+                expectedValue = 1; // The rest should come from Parent A
+            }
+            assertEquals("Gene at index " + i + " has incorrect value", expectedValue, child.getReactorLayout()[i]);
+        }
     }
 }
