@@ -1,8 +1,9 @@
-package Ic2ExpReactorPlanner;
+package Ic2ExpReactorPlanner.GeneticOptimizer;
 
-import java.text.DecimalFormat;
+import Ic2ExpReactorPlanner.Reactor;
+import Ic2ExpReactorPlanner.SimulationData;
 
-public class GeneticOptimizer {
+public class GeneticOptimizerRuntime {
     public static void main(String[] args) {
         GAConfig config = GAConfig.loadConfig(args.length > 1 ? args[1] : null);
         if (config == null)

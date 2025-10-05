@@ -1,5 +1,7 @@
 package Ic2ExpReactorPlanner;
 
+import Ic2ExpReactorPlanner.GeneticOptimizer.GAConfig;
+import Ic2ExpReactorPlanner.GeneticOptimizer.ReactorGenome;
 import org.junit.Test;
 
 import java.util.Arrays;

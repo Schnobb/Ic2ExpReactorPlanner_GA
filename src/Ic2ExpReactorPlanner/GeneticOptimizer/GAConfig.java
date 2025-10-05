@@ -1,4 +1,4 @@
-package Ic2ExpReactorPlanner;
+package Ic2ExpReactorPlanner.GeneticOptimizer;
 
 import com.google.gson.Gson;
 

@@ -1,5 +1,7 @@
-package Ic2ExpReactorPlanner;
+package Ic2ExpReactorPlanner.GeneticOptimizer;
 
+import Ic2ExpReactorPlanner.ComponentFactory;
+import Ic2ExpReactorPlanner.Reactor;
 import Ic2ExpReactorPlanner.components.FuelRod;
 import Ic2ExpReactorPlanner.components.ReactorItem;
 
