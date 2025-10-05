@@ -30,7 +30,7 @@ public class MockRandom extends Random {
     @Override
     public int nextInt(int bound) {
         if (intQueue.isEmpty()) {
-            throw new IllegalStateException("MockRandom's int queue is empty! Test was not set up correctly.");
+            throw new IllegalStateException("MockRandom's int queue is empty. Test was not set up correctly.");
         }
         return intQueue.poll();
     }
@@ -38,7 +38,7 @@ public class MockRandom extends Random {
     @Override
     public double nextDouble() {
         if (doubleQueue.isEmpty()) {
-            throw new IllegalStateException("MockRandom's double queue is empty! Test was not set up correctly.");
+            throw new IllegalStateException("MockRandom's double queue is empty. Test was not set up correctly.");
         }
         return doubleQueue.poll();
     }

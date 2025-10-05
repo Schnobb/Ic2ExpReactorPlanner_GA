@@ -166,6 +166,14 @@ public class ReactorGenome {
         }
     }
 
+    public ReactorGenome copy() {
+        ReactorGenome newGenome = new ReactorGenome(this.config);
+        newGenome.fuelType = this.fuelType;
+        System.arraycopy(this.reactorLayout, 0, newGenome.reactorLayout, 0, this.reactorLayout.length);
+
+        return newGenome;
+    }
+
     @Override
     public String toString() {
         StringBuilder buffer = new StringBuilder();
