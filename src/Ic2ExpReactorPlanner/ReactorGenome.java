@@ -60,6 +60,11 @@ public class ReactorGenome {
         return genome;
     }
 
+    public String getERPCode() {
+        Reactor reactor = toReactor();
+        return reactor.getCode();
+    }
+
     public static ReactorGenome fromReactor(Reactor reactor) {
         ReactorGenome genome = new ReactorGenome();
 
