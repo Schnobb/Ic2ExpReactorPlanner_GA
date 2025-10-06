@@ -103,7 +103,7 @@ public class ReactorGenome {
     public static ReactorGenome crossBreed(GAConfig config, ReactorGenome parentA, ReactorGenome parentB, Random random) {
         ReactorGenome newGenome = new ReactorGenome(config);
 
-        newGenome.fuelType = parentA.fuelType;
+        newGenome.fuelType = random.nextDouble() < 0.5 ? parentA.fuelType : parentB.fuelType;
 
         int crossoverPoint1 = random.nextInt(newGenome.reactorLayout.length);
         int crossoverPoint2 = random.nextInt(newGenome.reactorLayout.length);

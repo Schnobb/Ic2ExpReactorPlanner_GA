@@ -58,20 +58,4 @@ public class GeneticOptimizerRuntime {
 //        System.out.println(erpIssueReactorCodeAfter);
 
     }
-
-    private double EvaluateGenomeFitness(SimulationData data, ReactorGenome genome) {
-        double fitness = 0.0;
-
-        if (data.maxTemp > 0)
-            return 0.0;
-
-        // base fitness is average EU/t for the duration
-        fitness += data.avgEUoutput;
-
-        // maybe modify by total EU generation? but this will put more importance on later fuels
-        // maybe modify by fuel efficiency (EU/t per rod)
-        // maybe more reactor analysis for more modifiers
-
-        return fitness;
-    }
 }

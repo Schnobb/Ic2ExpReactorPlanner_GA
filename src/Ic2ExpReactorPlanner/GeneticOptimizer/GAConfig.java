@@ -7,13 +7,21 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 public class GAConfig {
-    public int phaseLengthGenerations;
+    public EvolutionConfig evolution;
     public MutationConfig mutation;
     public ComponentConfig components;
     public FuelConfig fuels;
     public ReactorConfig reactor;
 
     public static final String DEFAULT_CONFIG_FILE_NAME = "ga_default_config.json";
+
+    public static class EvolutionConfig {
+        public int phaseLengthGeneration;
+        public int populationSize;
+        public int maxGeneration;
+        public int alphaCount;
+        public int tournamentSizeK;
+    }
 
     public static class MutationConfig {
         public PhaseProbabilities refinement;

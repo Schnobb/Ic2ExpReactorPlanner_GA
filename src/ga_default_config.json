@@ -1,5 +1,11 @@
 {
-  "phaseLengthGenerations": 250,
+  "evolution": {
+    "phaseLengthGenerations": 250,
+    "populationSize": 500,
+    "maxGeneration": 20000,
+    "alphaCount": 1,
+    "tournamentSizeK": 3
+  },
   "mutation": {
     "refinement": {
       "probabilityFuelMutation": 0.001,
