@@ -1,10 +1,13 @@
 {
   "evolution": {
     "phaseLengthGenerations": 5,
-    "populationSize": 100,
+    "populationSize": 500,
     "maxGeneration": 10,
     "alphaCount": 1,
     "tournamentSizeK": 3
+  },
+  "fitness": {
+    "componentBrokenPenalty": 0.5
   },
   "mutation": {
     "refinement": {

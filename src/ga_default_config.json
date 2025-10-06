@@ -6,6 +6,9 @@
     "alphaCount": 1,
     "tournamentSizeK": 3
   },
+  "fitness": {
+    "componentBrokenPenalty": 0.5
+  },
   "mutation": {
     "refinement": {
       "probabilityFuelMutation": 0.001,

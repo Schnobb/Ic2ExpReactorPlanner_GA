@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 
 public class GAConfig {
     public EvolutionConfig evolution;
+    public FitnessConfig fitness;
     public MutationConfig mutation;
     public ComponentConfig components;
     public FuelConfig fuels;
@@ -21,6 +22,10 @@ public class GAConfig {
         public int maxGeneration;
         public int alphaCount;
         public int tournamentSizeK;
+    }
+
+    public static class FitnessConfig {
+        public double componentBrokenPenalty;
     }
 
     public static class MutationConfig {
