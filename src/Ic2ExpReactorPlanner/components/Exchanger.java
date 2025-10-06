@@ -18,6 +18,8 @@ public class Exchanger extends ReactorItem {
     
     private final int switchSide;
     private final int switchReactor;
+
+    private final List<ReactorItem> heatableNeighbors = new ArrayList<>(4);
     
     public Exchanger(final int id, final String baseName, final String name, final Image image, final double maxDamage, final double maxHeat, final String sourceMod, final int switchSide, final int switchReactor) {
         super(id, baseName, name, image, maxDamage, maxHeat, sourceMod);
@@ -33,7 +35,8 @@ public class Exchanger extends ReactorItem {
     
     @Override
     public void transfer() {
-        List<ReactorItem> heatableNeighbors = new ArrayList<>(4);
+        heatableNeighbors.clear();
+
         ReactorItem component = parent.getComponentAt(row, col - 1);
         if (component != null && component.isHeatAcceptor()) {
             heatableNeighbors.add(component);
@@ -50,6 +53,7 @@ public class Exchanger extends ReactorItem {
         if (component != null && component.isHeatAcceptor()) {
             heatableNeighbors.add(component);
         }
+
         // Code adapted from decompiled IC2 code, class ItemReactorHeatSwitch, with permission from Thunderdark.
         double myHeat = 0;
         if (switchSide > 0) {

@@ -95,6 +95,13 @@ public final class MaterialsList {
     public MaterialsList(Object... materials) {
         add(materials);
     }
+
+    /**
+     * Clears the MaterialList's internal state so it can be reused without a new instantiation.
+     * */
+    public void clear() {
+        this.materials.clear();
+    }
     
     /**
      * Adds the specified items to this materials list.

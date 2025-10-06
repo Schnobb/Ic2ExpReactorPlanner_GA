@@ -19,6 +19,8 @@ public class Vent extends ReactorItem {
     private final int selfVent;
     private final int hullDraw;
     private final int sideVent;
+
+    private final List<ReactorItem> coolableNeighbors = new ArrayList<>(4);
     
     public Vent(final int id, final String baseName, final String name, final Image image, final double maxDamage, final double maxHeat, final String sourceMod,
             final int selfVent, final int hullDraw, final int sideVent) {
@@ -46,7 +48,8 @@ public class Vent extends ReactorItem {
         parent.ventHeat(currentDissipation);
         adjustCurrentHeat(-currentDissipation);
         if (sideVent > 0) {
-            List<ReactorItem> coolableNeighbors = new ArrayList<>(4);
+            coolableNeighbors.clear();
+
             ReactorItem component = parent.getComponentAt(row - 1, col);
             if (component != null && component.isCoolable()) {
                 coolableNeighbors.add(component);
@@ -63,6 +66,7 @@ public class Vent extends ReactorItem {
             if (component != null && component.isCoolable()) {
                 coolableNeighbors.add(component);
             }
+
             for (ReactorItem coolableNeighbor : coolableNeighbors) {
                 double rejectedCooling = coolableNeighbor.adjustCurrentHeat(-sideVent);
                 double tempDissipatedHeat = sideVent + rejectedCooling;
