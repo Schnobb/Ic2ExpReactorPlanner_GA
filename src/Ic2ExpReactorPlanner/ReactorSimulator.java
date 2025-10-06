@@ -1,50 +1,98 @@
 package Ic2ExpReactorPlanner;
 
+import Ic2ExpReactorPlanner.GeneticOptimizer.ReactorGenome;
 import Ic2ExpReactorPlanner.components.ReactorItem;
 
 import static Ic2ExpReactorPlanner.BundleHelper.formatI18n;
 
 public class ReactorSimulator {
-    public int initialHeat = 0;
-    public boolean active = true;
-    public int pauseTimer = 0;
+    public int initialHeat;
+    public boolean active;
+    public int pauseTimer;
 
-    private boolean reachedBelow50 = false;
-    private boolean reachedBurn = false;
-    private boolean reachedEvaporate = false;
-    private boolean reachedHurt = false;
-    private boolean reachedLava = false;
-    private boolean reachedExplode = false;
+    private boolean reachedBelow50;
+    private boolean reachedBurn;
+    private boolean reachedEvaporate;
+    private boolean reachedHurt;
+    private boolean reachedLava;
+    private boolean reachedExplode;
 
-    private int activeTime = 0;
-    private int inactiveTime = 0;
-    private int currentActiveTime = 0;
-    private int minActiveTime = Integer.MAX_VALUE;
-    private int maxActiveTime = 0;
-    private int currentInactiveTime = 0;
-    private int minInactiveTime = Integer.MAX_VALUE;
-    private int maxInactiveTime = 0;
+    private int activeTime;
+    private int inactiveTime;
+    private int currentActiveTime;
+    private int minActiveTime;
+    private int maxActiveTime;
+    private int currentInactiveTime;
+    private int minInactiveTime;
+    private int maxInactiveTime;
 
-    private double minEUoutput = Double.MAX_VALUE;
-    private double maxEUoutput = 0.0;
-    private double minHeatOutput = Double.MAX_VALUE;
-    private double maxHeatOutput = 0.0;
+    private double minEUoutput;
+    private double maxEUoutput;
+    private double minHeatOutput;
+    private double maxHeatOutput;
 
-    private boolean allFuelRodsDepleted = false;
-    private boolean componentsIntact = true;
-    private boolean anyRodsDepleted = false;
+    private boolean allFuelRodsDepleted;
+    private boolean componentsIntact;
+    private boolean anyRodsDepleted;
 
-    private int redstoneUsed = 0;
-    private int lapisUsed = 0;
+    private int redstoneUsed;
+    private int lapisUsed;
 
-    private double totalHullHeating = 0;
-    private double totalComponentHeating = 0;
-    private double totalHullCooling = 0;
-    private double totalVentCooling = 0;
+    private double totalHullHeating;
+    private double totalComponentHeating;
+    private double totalHullCooling;
+    private double totalVentCooling;
 
-    private final MaterialsList replacedItems = new MaterialsList();
-    private final boolean[][] alreadyBroken = new boolean[6][9];
-    private final boolean[][] needsCooldown = new boolean[6][9];
+    private MaterialsList replacedItems;
+    private boolean[][] alreadyBroken;
+    private boolean[][] needsCooldown;
+
+    public ReactorSimulator() {
+        this.resetState();
+    }
+
+    public void resetState() {
+        initialHeat = 0;
+        active = true;
+        pauseTimer = 0;
+
+        reachedBelow50 = false;
+        reachedBurn = false;
+        reachedEvaporate = false;
+        reachedHurt = false;
+        reachedLava = false;
+        reachedExplode = false;
+
+        activeTime = 0;
+        inactiveTime = 0;
+        currentActiveTime = 0;
+        minActiveTime = Integer.MAX_VALUE;
+        maxActiveTime = 0;
+        currentInactiveTime = 0;
+        minInactiveTime = Integer.MAX_VALUE;
+        maxInactiveTime = 0;
+
+        minEUoutput = Double.MAX_VALUE;
+        maxEUoutput = 0.0;
+        minHeatOutput = Double.MAX_VALUE;
+        maxHeatOutput = 0.0;
+
+        allFuelRodsDepleted = false;
+        componentsIntact = true;
+        anyRodsDepleted = false;
+
+        redstoneUsed = 0;
+        lapisUsed = 0;
+
+        totalHullHeating = 0;
+        totalComponentHeating = 0;
+        totalHullCooling = 0;
+        totalVentCooling = 0;
+
+        replacedItems = new MaterialsList();
+        alreadyBroken = new boolean[6][9];
+        needsCooldown = new boolean[6][9];
+    }
 
     public SimulationData runSimulation(Reactor reactor) {
         SimulationData data = new SimulationData();

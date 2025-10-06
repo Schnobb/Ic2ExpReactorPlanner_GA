@@ -79,6 +79,6 @@ public class SimulationData {
     public MaterialsList replacedItems = new MaterialsList();
 
     // Simulation metadata
-    public long startTime = 0;
-    public long endTime = 0;
+    public transient long startTime = 0;
+    public transient long endTime = 0;
 }

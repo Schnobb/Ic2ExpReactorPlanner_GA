@@ -62,6 +62,7 @@ public class ReactorGenomeTest {
         assertNotNull("Test setup failed: Could not load config", config);
 
         MockRandom mockRandom = new MockRandom();
+        mockRandom.setDoubleValues(0.99);
         mockRandom.setIntValues(10, 25);
 
         ReactorGenome parentA = new ReactorGenome(config);
