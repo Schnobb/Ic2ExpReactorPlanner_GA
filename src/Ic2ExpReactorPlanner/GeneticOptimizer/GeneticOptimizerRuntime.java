@@ -1,7 +1,11 @@
 package Ic2ExpReactorPlanner.GeneticOptimizer;
 
+import Ic2ExpReactorPlanner.Logger;
 import Ic2ExpReactorPlanner.Reactor;
 import Ic2ExpReactorPlanner.SimulationData;
+
+import java.util.ArrayList;
+import java.util.Comparator;
 
 public class GeneticOptimizerRuntime {
     public static void main(String[] args) {
@@ -9,53 +13,18 @@ public class GeneticOptimizerRuntime {
         if (config == null)
             System.exit(1);
 
-        String testReactor = "erp=AN0nc6OU0EZ6odjKIHf5LQtII1WK0d2I46Jsac29tPkOMkwUWLvXEmuRd6ZfDXo5b1GSvAM=";
+        // Create and run the evolution engine
+        EvolutionEngine evolutionEngine = new EvolutionEngine(config);
+        ArrayList<EvolutionEngine.EvaluatedGenome> finalPopulation = evolutionEngine.Run(true);
 
-        Reactor reactorA = new Reactor();
-        reactorA.setCode(testReactor);
+        // Show the top 10 reactor designs
+        finalPopulation.sort(Comparator.comparingDouble(EvolutionEngine.EvaluatedGenome::getFitness).reversed());
 
-        ReactorGenome reactorBGenome = ReactorGenome.fromReactor(config, reactorA);
-        Reactor reactorB = reactorBGenome.toReactor();
-
-        ReactorGenome reactorCGenome = ReactorGenome.fromReactor(config, reactorB);
-        Reactor reactorC = reactorCGenome.toReactor();
-
-        System.out.println("Test Reactor: " + testReactor);
-        System.out.println("Reactor A: " + reactorA.getCode());
-        System.out.println("Reactor B: " + reactorB.getCode());
-        System.out.println("Reactor C: " + reactorC.getCode());
-//        String testReactor = "erp=bpO50cpi8E5OP2NCrFVHygib7/xvxtcd8jWwWed4soVHBTDMyEdVSDc8pKimGhvVXAM=";
-//        Reactor reactor = new Reactor();
-//        reactor.setCode(testReactor);
-//
-//        System.out.println("Testing reactor '" + testReactor + "'\n");
-//        ReactorSimulator simulator = new ReactorSimulator();
-//        SimulationData data = simulator.runSimulation(reactor);
-//
-//        DecimalFormat outputFormat = new DecimalFormat("#,##0.00");
-//        System.out.println("Simulation ended.");
-//        // EU is x10 in GTNH
-//        System.out.println("\tAVG EU Output: " + outputFormat.format(data.avgEUoutput * 10) + " EU/t");
-//        System.out.println("\tMax Temp: " + outputFormat.format(data.maxTemp) + " Hu");
-//        System.out.println("\tTotal EU Output: " + outputFormat.format(data.totalEUoutput * 10) + " EU/t");
-//
-//        System.out.println();
-//        ReactorGenome genome = ReactorGenome.fromReactor(reactor);
-//        System.out.println(genome);
-//        System.out.println(ReactorGenome.serialize(genome));
-//        System.out.println(genome.getERPCode());
-//
-//        String erpIssueReactorCodeBefore = "erp=AN0nc6OU0EZ6odjKIHf5LQtII1WK0d2I46Jsac29tPkOMkwUWLvXEmuRd6ZfDXo5b1GSvAM=";
-//        Reactor erpIssueReactorBefore = new Reactor();
-//        erpIssueReactorBefore.setCode(erpIssueReactorCodeBefore);
-//
-//        ReactorGenome erpIssueGenome = ReactorGenome.fromReactor(erpIssueReactorBefore);
-//        Reactor erpIssueReactorAfter = new Reactor();
-//        erpIssueReactorAfter.setCode(erpIssueGenome.getERPCode());
-//        String erpIssueReactorCodeAfter = erpIssueReactorAfter.getCode();
-//
-//        System.out.println(erpIssueReactorCodeBefore);
-//        System.out.println(erpIssueReactorCodeAfter);
-
+        Logger.log("");
+        Logger.log("Final top 10:");
+        Logger.log("");
+        for (int i = 0; i < 10; i++) {
+            Logger.log("%d - %.2f - %s%n", i, finalPopulation.get(i).getFitness(), finalPopulation.get(i).getGenome().getERPCode());
+        }
     }
 }

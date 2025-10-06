@@ -16,7 +16,7 @@ public class GAConfig {
     public static final String DEFAULT_CONFIG_FILE_NAME = "ga_default_config.json";
 
     public static class EvolutionConfig {
-        public int phaseLengthGeneration;
+        public int phaseLengthGenerations;
         public int populationSize;
         public int maxGeneration;
         public int alphaCount;
