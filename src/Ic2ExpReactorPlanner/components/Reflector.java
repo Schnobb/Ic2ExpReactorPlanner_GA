@@ -15,13 +15,16 @@ import java.awt.Image;
 public class Reflector extends ReactorItem {
     
     private static String mcVersion = "1.12.2";
+    private boolean is1710;
     
     public Reflector(final int id, final String baseName, final String name, final Image image, final double maxDamage, final double maxHeat, final String sourceMod) {
         super(id, baseName, name, image, maxDamage, maxHeat, sourceMod);
+        this.is1710 = "1.7.10".equals(mcVersion);
     }
     
     public Reflector(final Reflector other) {
         super(other);
+        this.is1710 = "1.7.10".equals(mcVersion);
     }
     
     @Override
@@ -42,7 +45,7 @@ public class Reflector extends ReactorItem {
     
     @Override
     public double getMaxDamage() {
-        if (maxDamage > 1 && "1.7.10".equals(mcVersion)) {
+        if (maxDamage > 1 && this.is1710) {
             return maxDamage / 3;
         }
         return maxDamage;
