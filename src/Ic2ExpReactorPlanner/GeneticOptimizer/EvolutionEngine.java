@@ -12,8 +12,6 @@ public class EvolutionEngine {
     private final GAConfig config;
     private final Random random;
 
-    private boolean exploratoryPhase;
-
     public EvolutionEngine(GAConfig config) {
         this.config = config;
         this.random = new Random();
@@ -27,7 +25,8 @@ public class EvolutionEngine {
     public ArrayList<EvaluatedGenome> Run() {
         ArrayList<EvaluatedGenome> population = new ArrayList<>();
         int generation = 0;
-        exploratoryPhase = true;
+        boolean exploratoryPhase = true;
+        ReactorSimulator simulator = new ReactorSimulator();
 
         // population initialization (all random for now)
         for (int i = 0; i < this.config.evolution.populationSize; i++) {
@@ -39,7 +38,7 @@ public class EvolutionEngine {
             // evaluate each genome by running the simulation and analyzing the data with EvaluateGenomeFitness
             for (EvaluatedGenome currentGenome : population) {
                 Reactor currentReactor = currentGenome.genome.toReactor();
-                ReactorSimulator simulator = new ReactorSimulator();
+                simulator.resetState();
                 SimulationData data = simulator.runSimulation(currentReactor);
 
                 // store that fitness in EvaluatedGenome
