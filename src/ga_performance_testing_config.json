@@ -1,8 +1,8 @@
 {
   "evolution": {
-    "phaseLengthGenerations": 250,
-    "populationSize": 500,
-    "maxGeneration": 1000,
+    "phaseLengthGenerations": 5,
+    "populationSize": 100,
+    "maxGeneration": 10,
     "alphaCount": 1,
     "tournamentSizeK": 3
   },

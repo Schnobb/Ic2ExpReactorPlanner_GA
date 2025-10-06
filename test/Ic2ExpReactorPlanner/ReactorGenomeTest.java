@@ -101,7 +101,7 @@ public class ReactorGenomeTest {
         GAConfig.PhaseProbabilities probabilities = config.mutation.refinement;
 
         // Test
-        originalGenome.TryMutation(config, probabilities, mockRandom);
+        originalGenome.tryMutation(config, probabilities, mockRandom);
 
         // Asserts
         assertEquals("Fuel type should not have changed", copyOfOriginal.getFuelType(), originalGenome.getFuelType());
@@ -128,7 +128,7 @@ public class ReactorGenomeTest {
         GAConfig.PhaseProbabilities probabilities = config.mutation.refinement;
 
         // Test
-        genome.TryMutation(config, probabilities, mockRandom);
+        genome.tryMutation(config, probabilities, mockRandom);
 
         // Asserts
         assertEquals("Fuel type should not have changed", originalFuelType, genome.getFuelType());
@@ -172,7 +172,7 @@ public class ReactorGenomeTest {
         GAConfig.PhaseProbabilities probabilities = config.mutation.exploration;
 
         // Test
-        genome.TryMutation(config, probabilities, mockRandom);
+        genome.tryMutation(config, probabilities, mockRandom);
 
         // Asserts
         assertEquals("Fuel type should not have changed", -1, genome.getFuelType());
@@ -213,7 +213,7 @@ public class ReactorGenomeTest {
         GAConfig.PhaseProbabilities probabilities = config.mutation.refinement;
 
         // Test
-        genome.TryMutation(config, probabilities, mockRandom);
+        genome.tryMutation(config, probabilities, mockRandom);
 
         // Asserts
         assertEquals("Fuel type should have changed", genome.getFuelType(), newFuelType);

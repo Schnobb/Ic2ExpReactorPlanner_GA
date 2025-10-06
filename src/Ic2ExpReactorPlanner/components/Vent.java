@@ -50,21 +50,10 @@ public class Vent extends ReactorItem {
         if (sideVent > 0) {
             coolableNeighbors.clear();
 
-            ReactorItem component = parent.getComponentAt(row - 1, col);
-            if (component != null && component.isCoolable()) {
-                coolableNeighbors.add(component);
-            }
-            component = parent.getComponentAt(row, col + 1);
-            if (component != null && component.isCoolable()) {
-                coolableNeighbors.add(component);
-            }
-            component = parent.getComponentAt(row + 1, col);
-            if (component != null && component.isCoolable()) {
-                coolableNeighbors.add(component);
-            }
-            component = parent.getComponentAt(row, col - 1);
-            if (component != null && component.isCoolable()) {
-                coolableNeighbors.add(component);
+            for (ReactorItem component : adjacentNeighbors) {
+                if (component != null && component.isCoolable()) {
+                    coolableNeighbors.add(component);
+                }
             }
 
             for (ReactorItem coolableNeighbor : coolableNeighbors) {
@@ -82,21 +71,10 @@ public class Vent extends ReactorItem {
     public double getVentCoolingCapacity() {
         double result = selfVent;
         if (sideVent > 0) {
-            ReactorItem component = parent.getComponentAt(row - 1, col);
-            if (component != null && component.isCoolable()) {
-                result += sideVent;
-            }
-            component = parent.getComponentAt(row, col + 1);
-            if (component != null && component.isCoolable()) {
-                result += sideVent;
-            }
-            component = parent.getComponentAt(row + 1, col);
-            if (component != null && component.isCoolable()) {
-                result += sideVent;
-            }
-            component = parent.getComponentAt(row, col - 1);
-            if (component != null && component.isCoolable()) {
-                result += sideVent;
+            for (ReactorItem component : adjacentNeighbors) {
+                if (component != null && component.isCoolable()) {
+                    result += sideVent;
+                }
             }
         }
         return result;

@@ -31,22 +31,12 @@ public class Reflector extends ReactorItem {
 
     @Override
     public double generateHeat() {
-        ReactorItem component = parent.getComponentAt(row - 1, col);
-        if (component != null) {
-            applyDamage(component.getRodCount());
+        for (ReactorItem component : adjacentNeighbors) {
+            if (component != null) {
+                applyDamage(component.getRodCount());
+            }
         }
-        component = parent.getComponentAt(row, col + 1);
-        if (component != null) {
-            applyDamage(component.getRodCount());
-        }
-        component = parent.getComponentAt(row + 1, col);
-        if (component != null) {
-            applyDamage(component.getRodCount());
-        }
-        component = parent.getComponentAt(row, col - 1);
-        if (component != null) {
-            applyDamage(component.getRodCount());
-        }
+
         return 0;
     }
     

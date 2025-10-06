@@ -27,7 +27,7 @@ public class ReactorItem {
     // Simulation setting values
     private double initialHeat = 0;
 
-    
+    protected ReactorItem[] adjacentNeighbors;
 
     public double getInitialHeat() {
         return initialHeat;
@@ -388,6 +388,40 @@ public class ReactorItem {
      */
     public void injectCoolant() {
         // do nothing by default.
+    }
+
+    /**
+     * Returns the row position of this component.
+     */
+    public int getRow() {
+        return this.row;
+    }
+
+    /**
+     * Returns the column position of this component.
+     */
+    public int getCol() {
+        return this.col;
+    }
+
+    /**
+     * Finds and caches direct references to the four adjacent components.
+     * This is called once per simulation to avoid costly lookups in the main loop.
+     * The state of these neighbors must still be checked every tick for correctness.
+     *
+     * @param reactor The reactor instance.
+     */
+    public void cacheNeighbors(Reactor reactor) {
+        // This base implementation is sufficient for most components.
+        // It can be overridden by subclasses if they need more specific caching.
+        this.parent = reactor; // Ensure parent reference is set
+        this.adjacentNeighbors = new ReactorItem[4];
+
+        // Note: Array elements can be null if at the edge of the reactor. This is expected.
+        this.adjacentNeighbors[0] = parent.getComponentAt(row - 1, col); // North
+        this.adjacentNeighbors[1] = parent.getComponentAt(row, col + 1);   // East
+        this.adjacentNeighbors[2] = parent.getComponentAt(row + 1, col); // South
+        this.adjacentNeighbors[3] = parent.getComponentAt(row, col - 1);   // West
     }
     
 }

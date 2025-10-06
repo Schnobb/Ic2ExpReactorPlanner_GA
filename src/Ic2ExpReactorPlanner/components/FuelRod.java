@@ -20,6 +20,8 @@ public class FuelRod extends ReactorItem {
     private final double heatMult;
     private final int rodCount;
     private final boolean moxStyle;
+
+    private final ArrayList<ReactorItem> heatableNeighbors = new ArrayList<>(4);
     
     private static boolean GT509behavior = false;
     private static boolean GTNHbehavior = false;
@@ -56,53 +58,38 @@ public class FuelRod extends ReactorItem {
 
     private int countNeutronNeighbors() {
         int neutronNeighbors = 0;
-        ReactorItem component = parent.getComponentAt(row + 1, col);
-        if (component != null && component.isNeutronReflector()) {
-            neutronNeighbors++;
+
+        for (ReactorItem component : adjacentNeighbors) {
+            if (component != null && component.isNeutronReflector()) {
+                neutronNeighbors++;
+            }
         }
-        component = parent.getComponentAt(row - 1, col);
-        if (component != null && component.isNeutronReflector()) {
-            neutronNeighbors++;
-        }
-        component = parent.getComponentAt(row, col - 1);
-        if (component != null && component.isNeutronReflector()) {
-            neutronNeighbors++;
-        }
-        component = parent.getComponentAt(row, col + 1);
-        if (component != null && component.isNeutronReflector()) {
-            neutronNeighbors++;
-        }
+
         return neutronNeighbors;
     }
     
     protected void handleHeat(final int heat) {
-        List<ReactorItem> heatableNeighbors = new ArrayList<>(4);
-        ReactorItem component = parent.getComponentAt(row + 1, col);
-        if (component != null && component.isHeatAcceptor()) {
-            heatableNeighbors.add(component);
+        heatableNeighbors.clear();
+
+        for (ReactorItem component : adjacentNeighbors) {
+            if (component != null && component.isHeatAcceptor()) {
+                heatableNeighbors.add(component);
+            }
         }
-        component = parent.getComponentAt(row - 1, col);
-        if (component != null && component.isHeatAcceptor()) {
-            heatableNeighbors.add(component);
-        }
-        component = parent.getComponentAt(row, col - 1);
-        if (component != null && component.isHeatAcceptor()) {
-            heatableNeighbors.add(component);
-        }
-        component = parent.getComponentAt(row, col + 1);
-        if (component != null && component.isHeatAcceptor()) {
-            heatableNeighbors.add(component);
-        }
+
         if (heatableNeighbors.isEmpty()) {
             parent.adjustCurrentHeat(heat);
             currentHullHeating = heat;
         } else {
             currentComponentHeating = heat;
+            int heatPerNeighbor = heat / heatableNeighbors.size();
             for (ReactorItem heatableNeighbor : heatableNeighbors) {
-                heatableNeighbor.adjustCurrentHeat(heat / heatableNeighbors.size());
+                heatableNeighbor.adjustCurrentHeat(heatPerNeighbor);
             }
             int remainderHeat = heat % heatableNeighbors.size();
-            heatableNeighbors.get(0).adjustCurrentHeat(remainderHeat);
+            if (remainderHeat > 0) {
+                heatableNeighbors.get(0).adjustCurrentHeat(remainderHeat);
+            }
         }
     }
     

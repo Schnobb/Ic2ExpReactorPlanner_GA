@@ -150,7 +150,7 @@ public class ReactorGenome {
         return reactor;
     }
 
-    public void TryMutation(GAConfig config, GAConfig.PhaseProbabilities probabilities, Random random) {
+    public void tryMutation(GAConfig config, GAConfig.PhaseProbabilities probabilities, Random random) {
         // fuel type mutation
         if (random.nextDouble() < probabilities.probabilityFuelMutation)
             this.fuelType = config.fuels.valid[random.nextInt(config.fuels.valid.length)];

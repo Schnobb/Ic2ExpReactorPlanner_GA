@@ -37,21 +37,10 @@ public class Exchanger extends ReactorItem {
     public void transfer() {
         heatableNeighbors.clear();
 
-        ReactorItem component = parent.getComponentAt(row, col - 1);
-        if (component != null && component.isHeatAcceptor()) {
-            heatableNeighbors.add(component);
-        }
-        component = parent.getComponentAt(row, col + 1);
-        if (component != null && component.isHeatAcceptor()) {
-            heatableNeighbors.add(component);
-        }
-        component = parent.getComponentAt(row - 1, col);
-        if (component != null && component.isHeatAcceptor()) {
-            heatableNeighbors.add(component);
-        }
-        component = parent.getComponentAt(row + 1, col);
-        if (component != null && component.isHeatAcceptor()) {
-            heatableNeighbors.add(component);
+        for (ReactorItem component : adjacentNeighbors) {
+            if (component != null && component.isHeatAcceptor()) {
+                heatableNeighbors.add(component);
+            }
         }
 
         // Code adapted from decompiled IC2 code, class ItemReactorHeatSwitch, with permission from Thunderdark.
