@@ -176,10 +176,12 @@ public class EvolutionEngine {
         // base fitness is average EU/t for the duration
         fitness += data.avgEUoutput;
 
+        if (data.firstComponentBrokenTime < Integer.MAX_VALUE)
+            fitness *= this.config.fitness.componentBrokenPenalty;
+
         // maybe modify by total EU generation? but this will put more importance on later fuels
         // maybe modify by fuel efficiency (EU/t per rod)
         // maybe more reactor analysis for more modifiers
-        // heavily penalise (or even eliminate candidates) with components that end up breaking
 
         return fitness;
     }
