@@ -1,9 +1,7 @@
 package Ic2ExpReactorPlanner.GeneticOptimizer;
 
-import Ic2ExpReactorPlanner.Logger;
-import Ic2ExpReactorPlanner.Reactor;
-import Ic2ExpReactorPlanner.ReactorSimulator;
-import Ic2ExpReactorPlanner.SimulationData;
+import Ic2ExpReactorPlanner.*;
+import Ic2ExpReactorPlanner.components.ReactorItem;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -14,7 +12,6 @@ public class EvolutionEngine {
 
     private final ExecutorService executor;
     private final ThreadLocal<ReactorSimulator> simulatorThreadLocal;
-    private final int coreCount;
 
     public EvolutionEngine(GAConfig config) {
         this(config, new Random().nextLong());
@@ -24,8 +21,8 @@ public class EvolutionEngine {
         this.config = config;
         this.random = new Random(seed);
 
-        this.coreCount = Runtime.getRuntime().availableProcessors();
-        this.executor = Executors.newFixedThreadPool(this.coreCount);
+        int coreCount = Runtime.getRuntime().availableProcessors();
+        this.executor = Executors.newFixedThreadPool(coreCount);
         this.simulatorThreadLocal = ThreadLocal.withInitial(ReactorSimulator::new);
     }
 
@@ -53,7 +50,7 @@ public class EvolutionEngine {
 
         printVerbose(verbose, "Initial population of %d candidates created", population.size(), this.config.evolution.maxGeneration);
 
-        ArrayList<Future<Double>> fitnessFutures = new ArrayList<>(population.size());
+        ArrayList<Future<SimulationData>> fitnessFutures = new ArrayList<>(population.size());
 
         while (generation < this.config.evolution.maxGeneration) {
             long generationStartTime = System.nanoTime();
@@ -71,58 +68,59 @@ public class EvolutionEngine {
 
             assert !population.isEmpty() : "Population list cannot be empty.";
 
-            // evaluate each genome by running the simulation and analyzing the data with EvaluateGenomeFitness
-//            for (EvaluatedGenome currentGenome : population) {
-//                if (currentGenome.fitness < 0) {
-//                    Reactor currentReactor = currentGenome.genome.toReactor();
-//                    simulator.resetState();
-//                    SimulationData data = simulator.runSimulation(currentReactor);
-//
-//                    // store that fitness in EvaluatedGenome
-//                    double fitness = EvaluateGenomeFitness(data, currentGenome.genome);
-//                    currentGenome.setFitness(fitness);
-//                }
-//            }
             fitnessFutures.clear();
 
-            for (int i = 0; i < population.size(); i++) {
-                EvaluatedGenome currentGenome = population.get(i);
-
+            // thread creation
+            for (EvaluatedGenome currentGenome : population) {
                 final ReactorGenome genomeForThread = currentGenome.getGenome().copy();
-//                final double knownFitness = currentGenome.getFitness();
 
-                Callable<Double> task = () -> {
-//                    if (knownFitness >= 0)
-//                        return knownFitness;
-
+                Callable<SimulationData> task = () -> {
                     ReactorSimulator threadSimulator = this.simulatorThreadLocal.get();
                     threadSimulator.resetState();
 
                     Reactor currentReactor = genomeForThread.toReactor();
-                    SimulationData data = threadSimulator.runSimulation(currentReactor);
-
-                    return EvaluateGenomeFitness(data, genomeForThread);
+                    return threadSimulator.runSimulation(currentReactor);
                 };
 
                 fitnessFutures.add(executor.submit(task));
             }
 
+            // data gathering from threads
+            double maxEUOutputThisGeneration = -1.0;
+            double maxFuelEfficiencyThisGeneration = -1.0;
             try {
                 for (int i = 0; i < population.size(); i++) {
-                    population.get(i).setFitness(fitnessFutures.get(i).get());
+                    EvaluatedGenome evaluatedGenome = population.get(i);
+                    SimulationData simulationData = fitnessFutures.get(i).get();
+                    evaluatedGenome.setSimulationData(simulationData);
+
+                    if (simulationData.avgEUOutput > maxEUOutputThisGeneration)
+                        maxEUOutputThisGeneration = simulationData.avgEUOutput;
+
+                    double fuelEfficiency = ComputeGenomeFuelEfficiency(evaluatedGenome.getGenome(), simulationData.avgEUOutput);
+                    if (fuelEfficiency > maxFuelEfficiencyThisGeneration)
+                        maxFuelEfficiencyThisGeneration = fuelEfficiency;
                 }
             } catch (Exception e) {
                 Logger.log(Logger.LogLevel.ERROR, "A simulation thread failed: %s", e.getCause() != null ? e.getCause().toString() : e.toString());
                 e.printStackTrace();
             }
 
+            // actual fitness computation
+            for (EvaluatedGenome currentGenome : population) {
+//                double normalizedEUOutput = maxEUOutputThisGeneration > 0 ? currentGenome.getAvgEUOutput() / maxEUOutputThisGeneration : 0;
+//                double normalizedFuelEfficiency = maxFuelEfficiencyThisGeneration > 0 ? currentGenome.getFuelEfficiency() / maxFuelEfficiencyThisGeneration : 0;
+
+//                currentGenome.setFitness(EvaluateGenomeFitness(normalizedEUOutput, normalizedFuelEfficiency));
+                currentGenome.setFitness(EvaluateGenomeFitness(currentGenome, maxEUOutputThisGeneration, maxFuelEfficiencyThisGeneration));
+            }
+
             int stableCount = 0;
             for (EvaluatedGenome genome : population) {
                 if (genome.getFitness() > 0) stableCount++;
-
             }
 
-            Logger.log(Logger.LogLevel.DEBUG, "Initial stable designs: %d/%d (%.1f%%)", stableCount, population.size(), 100.0 * stableCount / population.size());
+            Logger.log(Logger.LogLevel.DEBUG, "Stable designs in generation %d: %d/%d (%.1f%%)", generation, stableCount, population.size(), 100.0 * stableCount / population.size());
 
             // find the alpha
             EvaluatedGenome alpha = population.get(0);
@@ -144,13 +142,13 @@ public class EvolutionEngine {
             }
 
             double diversityRatio = (double) uniqueDesigns.size() / (double) population.size();
-            Logger.log(Logger.LogLevel.DEBUG, "Diversity: %d unique genomes (%.2f%%)", uniqueDesigns.size(), diversityRatio * 100);
+            Logger.log(Logger.LogLevel.DEBUG, "Diversity in generation %d: %d unique genomes (%.2f%%)", generation, uniqueDesigns.size(), diversityRatio * 100);
 
             // TODO: parametrize those
             if (diversityRatio < 0.2 && generation > 20) {
                 // TODO: also parametrize this
                 int injectCount = population.size() / 4;
-                Logger.log(Logger.LogLevel.DEBUG, "LOW DIVERSITY. Injecting %d random designs", injectCount);
+                Logger.log(Logger.LogLevel.DEBUG, "LOW DIVERSITY IN GENERATION %d. Injecting %d random designs", generation, injectCount);
 
                 population.sort(Comparator.comparingDouble(EvaluatedGenome::getFitness).reversed());
 
@@ -227,7 +225,14 @@ public class EvolutionEngine {
 
             long generationEndTime = System.nanoTime();
             double generationElapsedTimeMS = (generationEndTime - generationStartTime) / 1e6;
-            printVerbose(verbose, "Generation %d best fitness: %.2f, took %.2fms. Alpha: %s", generation, bestFitnessInGeneration, generationElapsedTimeMS, alpha.getGenome().getERPCode());
+
+            ReactorItem alphaFuelType = ComponentFactory.getDefaultComponent(alpha.getGenome().getFuelType());
+            assert alphaFuelType != null;
+
+            String alphaFuelTypeString = alphaFuelType.name;
+            String alphaRender = String.format("%s - %.2fEU/t %s", alphaFuelTypeString, alpha.getSimulationData().avgEUOutput, alpha.getGenome().getERPCode());
+
+            printVerbose(verbose, "Generation %d best fitness: %.2f, took %.2fms. Alpha: %s", generation, bestFitnessInGeneration, generationElapsedTimeMS, alphaRender);
             generation++;
         }
 
@@ -246,35 +251,36 @@ public class EvolutionEngine {
         return population;
     }
 
-    private double EvaluateGenomeFitness(SimulationData data, ReactorGenome genome) {
+    private double EvaluateGenomeFitness(EvaluatedGenome evaluatedGenome, double maxEUOutput, double maxFuelEfficiency) {
         double fitness = 0.0;
 
-        if (data.maxTemp > 0)
+        // Unstable reactors are disqualified, might look into heavily penalizing them in the future to reward experimentation
+        if (evaluatedGenome.getSimulationData().maxTemp > 0)
             return 0.0;
 
-        // base fitness is average EU/t for the duration
-        fitness += data.avgEUoutput;
+        SimulationData simulationData = evaluatedGenome.getSimulationData();
 
-        if (data.firstComponentBrokenTime < Integer.MAX_VALUE)
+        double avgEUOutput = simulationData.avgEUOutput;
+        double normalizedEUOutput = maxEUOutput > 0 ? avgEUOutput / maxEUOutput : 0;
+
+        double fuelEfficiency = ComputeGenomeFuelEfficiency(evaluatedGenome.getGenome(), avgEUOutput);
+        double normalizedFuelEfficiency = maxFuelEfficiency > 0 ? fuelEfficiency / maxFuelEfficiency : 0;
+
+        fitness += normalizedEUOutput * this.config.fitness.euOutputWeight + normalizedFuelEfficiency * this.config.fitness.fuelEfficiencyWeight;
+
+        if (simulationData.firstComponentBrokenTime < Integer.MAX_VALUE)
             fitness *= this.config.fitness.componentBrokenPenalty;
-
-        int fuelRodCount = 0;
-        for (int componentId : genome.getReactorLayout()) {
-            if (componentId == ReactorGenome.FUEL_VALUE) {
-                fuelRodCount++;
-            }
-        }
-
-        if (fuelRodCount > 0) {
-            double fuelEfficiency = data.avgEUoutput / (double) fuelRodCount;
-            fitness += fuelEfficiency * config.fitness.fuelEfficiencyWeight;
-        }
 
         // maybe modify by total EU generation? but this will put more importance on later fuels
         // maybe modify by fuel efficiency (EU/t per rod)
         // maybe further penalize reactors that accumulate too much heat in their component (as a % of the heat capacity of the component)
 
         return fitness;
+    }
+
+    private double ComputeGenomeFuelEfficiency(ReactorGenome genome, double avgEUOutput) {
+        int fuelRodCount = genome.getFuelRodCount();
+        return fuelRodCount > 0 ? avgEUOutput / (double) fuelRodCount : 0;
     }
 
     private void printVerbose(boolean verbose, String message, Object... args) {
@@ -284,15 +290,16 @@ public class EvolutionEngine {
 
     public static class EvaluatedGenome {
         private ReactorGenome genome;
+        private SimulationData simulationData;
         private double fitness;
 
         public EvaluatedGenome(ReactorGenome genome) {
-            this.genome = genome;
-            this.fitness = -1;
+            this(genome, -1.0);
         }
 
         public EvaluatedGenome(ReactorGenome genome, double fitness) {
             this.genome = genome;
+            this.simulationData = null;
             this.fitness = fitness;
         }
 
@@ -304,6 +311,14 @@ public class EvolutionEngine {
             this.genome = genome;
         }
 
+        public SimulationData getSimulationData() {
+            return this.simulationData;
+        }
+
+        public void setSimulationData(SimulationData simulationData) {
+            this.simulationData = simulationData;
+        }
+
         public double getFitness() {
             return this.fitness;
         }
@@ -311,5 +326,6 @@ public class EvolutionEngine {
         public void setFitness(double fitness) {
             this.fitness = fitness;
         }
+
     }
 }

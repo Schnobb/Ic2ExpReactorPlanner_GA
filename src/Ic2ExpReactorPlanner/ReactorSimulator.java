@@ -1,6 +1,5 @@
 package Ic2ExpReactorPlanner;
 
-import Ic2ExpReactorPlanner.GeneticOptimizer.ReactorGenome;
 import Ic2ExpReactorPlanner.components.ReactorItem;
 
 import java.util.ArrayList;
@@ -284,7 +283,7 @@ public class ReactorSimulator {
                     }
                 } else {
                     data.totalEUoutput = totalEUoutput;
-                    data.avgEUoutput = totalEUoutput / (reactorTicks * 20);
+                    data.avgEUOutput = totalEUoutput / (reactorTicks * 20);
                     data.minEUoutput = minEUoutput / 20.0;
                     data.maxEUoutput = maxEUoutput / 20.0;
                     if (totalEUoutput > 0) {

@@ -1,6 +1,7 @@
 package Ic2ExpReactorPlanner.GeneticOptimizer;
 
 import com.google.gson.Gson;
+import com.google.gson.stream.JsonReader;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
@@ -25,8 +26,10 @@ public class GAConfig {
     }
 
     public static class FitnessConfig {
-        public double componentBrokenPenalty;
+        public double euOutputWeight;
         public double fuelEfficiencyWeight;
+        public double metaEfficiencyTarget;
+        public double componentBrokenPenalty;
     }
 
     public static class MutationConfig {
@@ -66,8 +69,12 @@ public class GAConfig {
                     throw new FileNotFoundException("Resource not found: " + path);
                 }
 
+                InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+                JsonReader jsonReader = new JsonReader(inputStreamReader);
+                jsonReader.setLenient(true);
+
                 Gson gson = new Gson();
-                return gson.fromJson(new InputStreamReader(inputStream), GAConfig.class);
+                return gson.fromJson(jsonReader, GAConfig.class);
             }
         } catch (Exception e) {
             e.printStackTrace();

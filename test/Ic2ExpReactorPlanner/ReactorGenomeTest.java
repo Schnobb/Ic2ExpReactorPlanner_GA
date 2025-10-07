@@ -93,7 +93,12 @@ public class ReactorGenomeTest {
         assertNotNull("Test setup failed: Could not load config", config);
 
         MockRandom mockRandom = new MockRandom();
-        mockRandom.setDoubleValues(0.99, 0.99);
+
+        int layoutSize = config.reactor.rowCount * config.reactor.colCount;
+        Double[] doubleSequence = new Double[layoutSize + 2]; // +2 for the first two mockRandom.nextDouble() for the other rolls
+        Arrays.fill(doubleSequence, 0.99);
+
+        mockRandom.setDoubleValues(doubleSequence);
 
         ReactorGenome originalGenome = ReactorGenome.randomGenome(config, new Random());
         ReactorGenome copyOfOriginal = originalGenome.copy();
@@ -115,7 +120,13 @@ public class ReactorGenomeTest {
         assertNotNull("Test setup failed: Could not load config", config);
 
         MockRandom mockRandom = new MockRandom();
-        mockRandom.setDoubleValues(0.99, 0.01);
+
+        int layoutSize = config.reactor.rowCount * config.reactor.colCount;
+        Double[] doubleSequence = new Double[layoutSize + 2]; // +2 for the first two mockRandom.nextDouble() for the other rolls
+        Arrays.fill(doubleSequence, 0.99);
+        doubleSequence[1] = config.mutation.refinement.probabilityLayoutMutation / 2.0; // layout mutation
+
+        mockRandom.setDoubleValues(doubleSequence);
 
         int mutationIndex = 20;
         int newComponentListIndex = 5;
@@ -157,7 +168,7 @@ public class ReactorGenomeTest {
 
         int firstMutationIndex = 10;
         int secondMutationIndex = 35;
-        double lowProb = 0.001;
+        double lowProb = config.mutation.exploration.probabilityLayoutPerSlotMutation / 2.0;
         doubleSequence[firstMutationIndex + 2] = lowProb ; // +2 for the first two mockRandom.nextDouble() for the other rolls
         doubleSequence[secondMutationIndex + 2] = lowProb; // +2 for the first two mockRandom.nextDouble() for the other rolls
 
@@ -199,7 +210,14 @@ public class ReactorGenomeTest {
         assertNotNull("Test setup failed: Could not load config", config);
 
         MockRandom mockRandom = new MockRandom();
-        mockRandom.setDoubleValues(0.0001, 0.99);
+
+        int layoutSize = config.reactor.rowCount * config.reactor.colCount;
+        Double[] doubleSequence = new Double[layoutSize + 2]; // +2 for the first two mockRandom.nextDouble() for the other rolls
+        Arrays.fill(doubleSequence, 0.99);
+        doubleSequence[0] = config.mutation.refinement.probabilityFuelMutation / 2.0; // fuel mutation
+
+        mockRandom.setDoubleValues(doubleSequence);
+
         int oldFuelType = config.fuels.valid[0];
         int newFuelTypeId = config.fuels.valid.length - 1;
         int newFuelType = config.fuels.valid[newFuelTypeId];

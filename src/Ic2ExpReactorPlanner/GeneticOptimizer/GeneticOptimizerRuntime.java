@@ -1,7 +1,9 @@
 package Ic2ExpReactorPlanner.GeneticOptimizer;
 
+import Ic2ExpReactorPlanner.ComponentFactory;
 import Ic2ExpReactorPlanner.Logger;
 import Ic2ExpReactorPlanner.components.FuelRod;
+import Ic2ExpReactorPlanner.components.ReactorItem;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -48,7 +50,13 @@ public class GeneticOptimizerRuntime {
         Logger.log("");
         Logger.log("Final top 10:");
         for (int i = 0; i < 10; i++) {
-            Logger.log("%2d - %7.2f - %s", i + 1, finalPopulation.get(i).getFitness(), finalPopulation.get(i).getGenome().getERPCode());
+            EvolutionEngine.EvaluatedGenome evaluatedGenome = finalPopulation.get(i);
+
+            ReactorItem fuelType = ComponentFactory.getDefaultComponent(evaluatedGenome.getGenome().getFuelType());
+            assert fuelType != null;
+            String fuelTypeName = fuelType.name;
+
+            Logger.log("%2d - %s Fitness: %7.2f; Output: %7.2fEU/t - %s", i + 1, fuelTypeName, evaluatedGenome.getFitness(), evaluatedGenome.getSimulationData().avgEUOutput, evaluatedGenome.getGenome().getERPCode());
         }
     }
 }

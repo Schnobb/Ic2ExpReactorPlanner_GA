@@ -335,7 +335,7 @@ public class AutomationSimulator extends SwingWorker<Void, String> {
                         }
                     } else {
                         data.totalEUoutput = totalEUoutput;
-                        data.avgEUoutput = totalEUoutput / (reactorTicks * 20);
+                        data.avgEUOutput = totalEUoutput / (reactorTicks * 20);
                         data.minEUoutput = minEUoutput / 20.0;
                         data.maxEUoutput = maxEUoutput / 20.0;
                         if (totalEUoutput > 0) {

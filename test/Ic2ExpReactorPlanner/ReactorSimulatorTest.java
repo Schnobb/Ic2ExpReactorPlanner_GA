@@ -1,11 +1,6 @@
 package Ic2ExpReactorPlanner;
 
-import Ic2ExpReactorPlanner.GeneticOptimizer.GAConfig;
-import Ic2ExpReactorPlanner.GeneticOptimizer.ReactorGenome;
 import org.junit.Test;
-
-import java.util.Arrays;
-import java.util.Random;
 
 import static org.junit.Assert.*;
 
@@ -115,7 +110,7 @@ public class ReactorSimulatorTest {
         // --- Completed-Simulation Details ---
         assertEquals("Total reactor ticks should be identical", expected.totalReactorTicks, actual.totalReactorTicks);
         assertEquals("Total EU output should be identical", expected.totalEUoutput, actual.totalEUoutput, DELTA);
-        assertEquals("Average EU output should be identical", expected.avgEUoutput, actual.avgEUoutput, DELTA);
+        assertEquals("Average EU output should be identical", expected.avgEUOutput, actual.avgEUOutput, DELTA);
         assertEquals("Min EU output should be identical", expected.minEUoutput, actual.minEUoutput, DELTA);
         assertEquals("Max EU output should be identical", expected.maxEUoutput, actual.maxEUoutput, DELTA);
         assertEquals("Total HU output should be identical", expected.totalHUoutput, actual.totalHUoutput, DELTA);

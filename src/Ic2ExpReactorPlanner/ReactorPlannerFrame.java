@@ -44,7 +44,6 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
@@ -2616,16 +2615,16 @@ public class ReactorPlannerFrame extends javax.swing.JFrame {
             if (!prevReactor.isFluid()) {
                 if (leftData.minEUoutput <= leftData.maxEUoutput && rightData.minEUoutput <= rightData.maxEUoutput) {
                     if (alwaysDiff || Math.abs(leftData.totalEUoutput - rightData.totalEUoutput) > 1000
-                            || Math.abs(leftData.avgEUoutput - rightData.avgEUoutput) > 0.1
+                            || Math.abs(leftData.avgEUOutput - rightData.avgEUOutput) > 0.1
                             || Math.abs(leftData.minEUoutput - rightData.minEUoutput) > 0.1
                             || Math.abs(leftData.maxEUoutput - rightData.maxEUoutput) > 0.1) {
                         postsimText.append(formatI18n("Comparison.EUEUoutput",
                                 colorDecimal(leftData.totalEUoutput - rightData.totalEUoutput, 1000),
                                 simpleDecimal(leftData.totalEUoutput),
                                 simpleDecimal(rightData.totalEUoutput),
-                                colorDecimal(leftData.avgEUoutput - rightData.avgEUoutput, 0.1),
-                                simpleDecimal(leftData.avgEUoutput),
-                                simpleDecimal(rightData.avgEUoutput),
+                                colorDecimal(leftData.avgEUOutput - rightData.avgEUOutput, 0.1),
+                                simpleDecimal(leftData.avgEUOutput),
+                                simpleDecimal(rightData.avgEUOutput),
                                 colorDecimal(leftData.minEUoutput - rightData.minEUoutput, 0.1),
                                 simpleDecimal(leftData.minEUoutput),
                                 simpleDecimal(rightData.minEUoutput),
@@ -2639,7 +2638,7 @@ public class ReactorPlannerFrame extends javax.swing.JFrame {
                     postsimText.append(formatI18n("Comparison.EUHUoutput",
                             simpleDecimal(leftData.totalEUoutput),
                             simpleDecimal(rightData.totalHUoutput),
-                            simpleDecimal(leftData.avgEUoutput),
+                            simpleDecimal(leftData.avgEUOutput),
                             simpleDecimal(rightData.avgHUoutput),
                             simpleDecimal(leftData.minEUoutput),
                             simpleDecimal(rightData.minHUoutput),
@@ -2654,7 +2653,7 @@ public class ReactorPlannerFrame extends javax.swing.JFrame {
                             simpleDecimal(leftData.totalHUoutput),
                             simpleDecimal(rightData.totalEUoutput),
                             simpleDecimal(leftData.avgHUoutput),
-                            simpleDecimal(rightData.avgEUoutput),
+                            simpleDecimal(rightData.avgEUOutput),
                             simpleDecimal(leftData.minHUoutput),
                             simpleDecimal(rightData.minEUoutput),
                             simpleDecimal(leftData.maxHUoutput),

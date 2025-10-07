@@ -57,7 +57,7 @@ public class SimulationData {
     // Completed-simulation details
     public int totalReactorTicks = 0;
     public double totalEUoutput = 0;
-    public double avgEUoutput = 0;
+    public double avgEUOutput = 0;
     public double minEUoutput = Double.MAX_VALUE;
     public double maxEUoutput = 0;
     public double totalHUoutput = 0;

@@ -1,14 +1,34 @@
 {
   "evolution": {
+    // The algorithm is biphasic, it runs for "phaseLengthGenerations" in exploratory mode with high mutation chances
+    // and then switches to refinement mode with more conservative mutation rates.
     "phaseLengthGenerations": 50,
     "populationSize": 500,
     "maxGeneration": 1000,
+
+    // Number of highest fitness individuals to keep intact per generation.
     "alphaCount": 5,
+
+    // When creating a new population for subsequent generations, the algorithm uses a tournament selection process.
+    // It fills the generation by running a tournament selecting "tournamentSizeK" individuals randomly in the population,
+    // and grabbing the highest fitness one as parentA. It then does the same thing for parentB. It then adds a cross breed
+    // of parentA and parentB to the population of the next generation.
     "tournamentSizeK": 5
   },
   "fitness": {
-    "componentBrokenPenalty": 0.5,
-    "fuelEfficiencyWeight": 0.3
+    // This is the weight of the power production of a reactor on its fitness score
+    "euOutputWeight":  1.0,
+
+    // This is the weight of the efficiency of a reactor on its fitness score. Based on the "metaEfficiencyTarget" it will
+    // give a bonus (sqrt bonus, not linear) when compared to a human designed "meta" reactor's efficiency.
+    "fuelEfficiencyWeight": 0.3,
+
+    // Based on the DESIGN #5: URANIUM v2 reactor on the GTNH wiki. Expressed in EU/t per fuel rods. Note that this is
+    // not the highest power reactor design, but the most efficient.
+    "metaFuelEfficiencyTarget": 800,
+
+    // A broken component at the end of the simulation is a sign of an unstable reactor. Should be heavily penalized.
+    "componentBrokenPenalty": 0.5
   },
   "mutation": {
     "refinement": {
@@ -23,10 +43,74 @@
     }
   },
   "components": {
-    "valid": [ -1, 999, 10, 11, 12, 13, 18, 19, 20, 35 ]
+    // List of valid component IDs that the GA is allowed to place in the reactor grid.
+    // -1: Empty
+    // 999: Placeholder for whatever the current fuel rod is for that genome.
+    "valid": [
+      -1,   // Empty
+      999,  // Fuel Rod Placeholder
+      //9,    // Heat Vent
+      10,   // Advanced Heat Vent
+      11,   // Reactor Heat Vent
+      12,   // Component Heat Vent
+      13,   // Overclocked Heat Vent
+      //14,   // 10k Coolant Cell
+      //15,   // 30k Coolant Cell
+      //16,   // 60k Coolant Cell
+      //17,   // Heat Exchanger
+      18,   // Advanced Heat Exchanger
+      19,   // Core Heat Exchanger
+      20,   // Component Heat Exchanger
+      //21,   // Reactor Plating
+      //22,   // Heat Capacity Reactor Plating
+      //23,   // Containment Reactor Plating
+      //24,   // RSH Condensator
+      //25,   // LZH Condensator
+      //29,   // 60k Helium Coolant Cell
+      //30,   // 180k Helium Coolant Cell
+      //31,   // 360k Helium Coolant Cell
+      //32,   // 60k NaK Coolant Cell
+      //33,   // 180k NaK Coolant Cell
+      //34,   // 360k NaK Coolant Cell
+      35,   // Iridium Neutron Reflector
+      //55,   // 180k Space Coolant Cell
+      //56,   // 360k Space Coolant Cell
+      //57,   // 540k Space Coolant Cell
+      //58    // 1080k Space Coolant Cell
+    ]
   },
   "fuels": {
-    "valid": [ 1, 2, 3, 4, 5, 6, 26, 27, 28 ]
+    // List of valid fuel rod component IDs that the GA can choose as the primary fuel for a genome.
+    "valid": [
+      1,    // Single Rod (Uranium)
+      2,    // Dual Rod (Uranium)
+      3,    // Quad Rod (Uranium)
+      4,    // Single Rod (MOX)
+      5,    // Dual Rod (MOX)
+      6,    // Quad Rod (MOX)
+      26,   // Single Rod (Thorium)
+      27,   // Dual Rod (Thorium)
+      28,   // Quad Rod (Thorium)
+      //36,   // Single Rod (Naquadah)
+      //37,   // Dual Rod (Naquadah)
+      //38,   // Quad Rod (Naquadah)
+      //39,   // Single Rod (Coaxium)
+      //40,   // Dual Rod (Coaxium)
+      //41,   // Quad Rod (Coaxium)
+      //42,   // Single Rod (Cesium)
+      //43,   // Dual Rod (Cesium)
+      //44,   // Quad Rod (Cesium)
+      //45,   // Single Rod (Naquadah GTNH)
+      //46,   // Dual Rod (Naquadah GTNH)
+      //47,   // Quad Rod (Naquadah GTNH)
+      //48,   // Single Rod (Naquadria)
+      //49,   // Dual Rod (Naquadria)
+      //50,   // Quad Rod (Naquadria)
+      //51,   // Single Rod (Tiberium)
+      //52,   // Dual Rod (Tiberium)
+      //53,   // Quad Rod (Tiberium)
+      //54    // The Core
+    ]
   },
   "reactor": {
     "rowCount": 6,

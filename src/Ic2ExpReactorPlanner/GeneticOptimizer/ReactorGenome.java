@@ -17,6 +17,9 @@ public class ReactorGenome {
     private int fuelType;
     private final int[] reactorLayout;
 
+    // Util stuff
+    private int fuelRodCount;
+
     // Config stuff
     private final GAConfig config;
 
@@ -25,11 +28,12 @@ public class ReactorGenome {
 
         this.fuelType = -1;
         this.reactorLayout = new int[this.config.reactor.rowCount * this.config.reactor.colCount];
+        this.fuelRodCount = -1;
     }
 
-     public int getFuelType() { return fuelType; }
-     public int[] getReactorLayout() { return reactorLayout; }
-     public void setFuelType(int type) { this.fuelType = type; }
+    public int getFuelType() { return fuelType; }
+    public int[] getReactorLayout() { return reactorLayout; }
+    public void setFuelType(int type) { this.fuelType = type; }
 
     public static ReactorGenome randomGenome(GAConfig config, Random random) {
         ReactorGenome genome = new ReactorGenome(config);
@@ -167,6 +171,19 @@ public class ReactorGenome {
                     this.reactorLayout[i] = config.components.valid[random.nextInt(config.components.valid.length)];
             }
         }
+    }
+
+    public int getFuelRodCount() {
+        if (fuelRodCount < 0) {
+            fuelRodCount = 0;
+            for (int componentId : this.getReactorLayout()) {
+                if (componentId == ReactorGenome.FUEL_VALUE) {
+                    fuelRodCount++;
+                }
+            }
+        }
+
+        return fuelRodCount;
     }
 
     public ReactorGenome copy() {

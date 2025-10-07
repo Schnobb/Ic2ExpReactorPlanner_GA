@@ -7,8 +7,10 @@
     "tournamentSizeK": 3
   },
   "fitness": {
-    "componentBrokenPenalty": 0.5,
-    "fuelEfficiencyWeight": 0.3
+    "euOutputWeight":  1.0,
+    "fuelEfficiencyWeight": 0.3,
+    "metaFuelEfficiencyTarget": 800,
+    "componentBrokenPenalty": 0.5
   },
   "mutation": {
     "refinement": {
