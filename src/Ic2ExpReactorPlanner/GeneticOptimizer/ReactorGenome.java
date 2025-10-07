@@ -6,11 +6,12 @@ import Ic2ExpReactorPlanner.components.FuelRod;
 import Ic2ExpReactorPlanner.components.ReactorItem;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Random;
 
 public class ReactorGenome {
-    private static final int FUEL_VALUE = 999;
+    public static final int FUEL_VALUE = 999;
 
     // Genome data
     private int fuelType;
@@ -190,5 +191,20 @@ public class ReactorGenome {
         }
 
         return buffer.toString();
+    }
+
+    @Override
+    public int hashCode() {
+        int result = fuelType;
+        result = 31 * result + Arrays.hashCode(reactorLayout);
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ReactorGenome that = (ReactorGenome) o;
+        return fuelType == that.fuelType && Arrays.equals(reactorLayout, that.reactorLayout);
     }
 }
