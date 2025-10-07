@@ -31,9 +31,17 @@ public class ReactorGenome {
         this.fuelRodCount = -1;
     }
 
-    public int getFuelType() { return fuelType; }
-    public int[] getReactorLayout() { return reactorLayout; }
-    public void setFuelType(int type) { this.fuelType = type; }
+    public int getFuelType() {
+        return fuelType;
+    }
+
+    public int[] getReactorLayout() {
+        return reactorLayout;
+    }
+
+    public void setFuelType(int type) {
+        this.fuelType = type;
+    }
 
     public static ReactorGenome randomGenome(GAConfig config, Random random) {
         ReactorGenome genome = new ReactorGenome(config);
@@ -156,19 +164,29 @@ public class ReactorGenome {
     }
 
     public void tryMutation(GAConfig config, GAConfig.PhaseProbabilities probabilities, Random random) {
+        tryMutation(config, probabilities, random, null);
+    }
+
+    public void tryMutation(GAConfig config, GAConfig.PhaseProbabilities probabilities, Random random, MutationStatTracker mutationStatTracker) {
         // fuel type mutation
-        if (random.nextDouble() < probabilities.probabilityFuelMutation)
+        if (random.nextDouble() < probabilities.probabilityFuelMutation) {
             this.fuelType = config.fuels.valid[random.nextInt(config.fuels.valid.length)];
+            if (mutationStatTracker != null) mutationStatTracker.fuelMutationCount++;
+        }
 
         // single layout mutation (refinement)
-        if (random.nextDouble() < probabilities.probabilityLayoutMutation)
+        if (random.nextDouble() < probabilities.probabilityLayoutMutation) {
             this.reactorLayout[random.nextInt(this.reactorLayout.length)] = config.components.valid[random.nextInt(config.components.valid.length)];
+            if (mutationStatTracker != null) mutationStatTracker.layoutMutationCount++;
+        }
 
         // per slot layout mutation (exploration)
         if (probabilities.probabilityLayoutPerSlotMutation > 0) {
             for (int i = 0; i < this.reactorLayout.length; i++) {
-                if (random.nextDouble() < probabilities.probabilityLayoutPerSlotMutation)
+                if (random.nextDouble() < probabilities.probabilityLayoutPerSlotMutation) {
                     this.reactorLayout[i] = config.components.valid[random.nextInt(config.components.valid.length)];
+                    if (mutationStatTracker != null) mutationStatTracker.layoutPerSlotMutationCount++;
+                }
             }
         }
     }
@@ -223,5 +241,22 @@ public class ReactorGenome {
         if (o == null || getClass() != o.getClass()) return false;
         ReactorGenome that = (ReactorGenome) o;
         return fuelType == that.fuelType && Arrays.equals(reactorLayout, that.reactorLayout);
+    }
+
+    public static class MutationStatTracker {
+        public int fuelMutationCount;
+        public int layoutMutationCount;
+        public int layoutPerSlotMutationCount;
+
+        public MutationStatTracker() {
+            this.fuelMutationCount = 0;
+            this.layoutMutationCount = 0;
+            this.layoutPerSlotMutationCount = 0;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("Fuel Mutations = %d; Layout Mutations = %d; Layout Per Slot Mutations = %d", this.fuelMutationCount, this.layoutMutationCount, this.layoutPerSlotMutationCount);
+        }
     }
 }

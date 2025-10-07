@@ -4,7 +4,10 @@
     "populationSize": 100,
     "maxGeneration": 10,
     "alphaCount": 1,
-    "tournamentSizeK": 3
+    "tournamentSizeK": 3,
+    "lowDiversityThreshold": 0.25,
+    "lowDiversityCullingRatio": 0.4,
+    "seedFile": null
   },
   "fitness": {
     "euOutputWeight":  1.0,

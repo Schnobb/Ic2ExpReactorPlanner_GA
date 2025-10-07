@@ -1,4 +1,4 @@
-package Ic2ExpReactorPlanner;
+package Ic2ExpReactorPlanner.GeneticOptimizer;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -7,7 +7,6 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 

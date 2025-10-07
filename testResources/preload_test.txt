@@ -1,0 +1,14 @@
+// Overnight run on 2025-10-06 to 2025-10-07. Got interrupted but ended up with reactors producing between 2000EU/t and 2320EU/t
+erp=bpO50cpokTyxp3t0Zt8MixpJUtrDtJOeeURH9JAFEGPgaDwULfUgoAKdNq5H48RiCKO/RAM= // this is the best!
+erp=G6TudHKbwHmuXhPMLrtTl3E+Qa1lMiFinWf5mdnT0gWeD8/RB7ECoP0QL6lF54ZOxTy7+AM=
+erp=G6TudHKbwHmuXhPMLrtTl3E+Qa1lMiFinWhS0hx/8k15oPnQReCYX71jwkLbByDZBTy7+AM=
+erp=G6TudHKbwHmuXhPMRwKBdsK57Ynew1cOZd4tksB0s7I5RpXgM9hJ4WYNNK2E4cZOxTy7+AM=
+erp=G6TudHKbwHmuXhPMLrtTl3E+Qa1lMiFinWhS0hx/8k15oPnQReCYX71jwkLbByDZBTy73AM=
+
+
+// other comment
+# alternate style of comment
+
+erp=G6TudHKbwHmuXhPMRwKBdsK57Ynew1cOZd4tksB0s7I5RpXgM9hJ4WYNNK2E4cZOxTy7+AM=
+erp=G6TudHKbwHmuXhPMRwKBdsK57Ynew1c3Zd4tksB0s7I5RpXgM9hJ4WYNNK2E4cZOxTy7+AM=
+erp=G6TudHKbwHmuXhRMPwKBdsK57Ynew1cOZd4tksB0s7I5RpXgM9hJ4WYNNK2E4cZOxTy7+AM=

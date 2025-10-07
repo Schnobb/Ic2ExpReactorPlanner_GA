@@ -13,7 +13,17 @@
     // It fills the generation by running a tournament selecting "tournamentSizeK" individuals randomly in the population,
     // and grabbing the highest fitness one as parentA. It then does the same thing for parentB. It then adds a cross breed
     // of parentA and parentB to the population of the next generation.
-    "tournamentSizeK": 5
+    "tournamentSizeK": 5,
+
+    // Low diversity threshold. When reached a culling will occur to inject random designs.
+    "lowDiversityThreshold": 0.25,
+
+    // How many individual will be culled during a low diversity culling. Expressed as a % of the population size.
+    "lowDiversityCullingRatio": 0.4,
+
+    // A file containing a simple list of ERP code of reactors that will be injected in gen0 of the EvolutionEngine.
+    // One ERP code per line. Ignores comment lines ('//', '#')
+    "seedFile": "preload.txt"
   },
   "fitness": {
     // This is the weight of the power production of a reactor on its fitness score
@@ -72,7 +82,7 @@
       //32,   // 60k NaK Coolant Cell
       //33,   // 180k NaK Coolant Cell
       //34,   // 360k NaK Coolant Cell
-      35,   // Iridium Neutron Reflector
+      35   // Iridium Neutron Reflector
       //55,   // 180k Space Coolant Cell
       //56,   // 360k Space Coolant Cell
       //57,   // 540k Space Coolant Cell
@@ -90,7 +100,7 @@
       6,    // Quad Rod (MOX)
       26,   // Single Rod (Thorium)
       27,   // Dual Rod (Thorium)
-      28,   // Quad Rod (Thorium)
+      28   // Quad Rod (Thorium)
       //36,   // Single Rod (Naquadah)
       //37,   // Dual Rod (Naquadah)
       //38,   // Quad Rod (Naquadah)
