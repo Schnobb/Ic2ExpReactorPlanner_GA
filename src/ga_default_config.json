@@ -1,24 +1,25 @@
 {
   "evolution": {
-    "phaseLengthGenerations": 5,
-    "populationSize": 50,
-    "maxGeneration": 30,
-    "alphaCount": 1,
-    "tournamentSizeK": 3
+    "phaseLengthGenerations": 50,
+    "populationSize": 500,
+    "maxGeneration": 1000,
+    "alphaCount": 5,
+    "tournamentSizeK": 5
   },
   "fitness": {
-    "componentBrokenPenalty": 0.5
+    "componentBrokenPenalty": 0.5,
+    "fuelEfficiencyWeight": 0.3
   },
   "mutation": {
     "refinement": {
-      "probabilityFuelMutation": 0.001,
-      "probabilityLayoutMutation": 0.025,
-      "probabilityLayoutPerSlotMutation": 0
+      "probabilityFuelMutation": 0.002,
+      "probabilityLayoutMutation": 0.08,
+      "probabilityLayoutPerSlotMutation": 0.0001
     },
     "exploration": {
-      "probabilityFuelMutation": 0.01,
-      "probabilityLayoutMutation": 0,
-      "probabilityLayoutPerSlotMutation": 0.005
+      "probabilityFuelMutation": 0.06,
+      "probabilityLayoutMutation": 0.15,
+      "probabilityLayoutPerSlotMutation": 0.025
     }
   },
   "components": {

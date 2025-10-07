@@ -26,6 +26,7 @@ public class GAConfig {
 
     public static class FitnessConfig {
         public double componentBrokenPenalty;
+        public double fuelEfficiencyWeight;
     }
 
     public static class MutationConfig {
