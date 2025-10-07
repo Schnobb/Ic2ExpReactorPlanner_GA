@@ -1,0 +1,35 @@
+{
+  "evolution": {
+    "phaseLengthGenerations": 50,
+    "populationSize": 500,
+    "maxGeneration": 5000,
+    "alphaCount": 5,
+    "tournamentSizeK": 5
+  },
+  "fitness": {
+    "componentBrokenPenalty": 0.5,
+    "fuelEfficiencyWeight": 0.3
+  },
+  "mutation": {
+    "refinement": {
+      "probabilityFuelMutation": 0.002,
+      "probabilityLayoutMutation": 0.08,
+      "probabilityLayoutPerSlotMutation": 0.0001
+    },
+    "exploration": {
+      "probabilityFuelMutation": 0.06,
+      "probabilityLayoutMutation": 0.15,
+      "probabilityLayoutPerSlotMutation": 0.025
+    }
+  },
+  "components": {
+    "valid": [ -1, 999, 12, 13, 20 ]
+  },
+  "fuels": {
+    "valid": [ 3, 6, 28 ]
+  },
+  "reactor": {
+    "rowCount": 6,
+    "colCount": 9
+  }
+}
