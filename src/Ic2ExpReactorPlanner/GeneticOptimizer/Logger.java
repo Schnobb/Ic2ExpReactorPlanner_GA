@@ -1,7 +1,5 @@
 package Ic2ExpReactorPlanner.GeneticOptimizer;
 
-import jdk.jfr.StackTrace;
-
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -32,8 +30,8 @@ import java.util.stream.Collectors;
  * </pre>
  */
 public class Logger {
-    private static DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
-    private static DateTimeFormatter LOG_FILE_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd - HH-mm-ss");
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
+    private static final DateTimeFormatter LOG_FILE_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd - HH-mm-ss");
     private static String logFileName;
 
     /**
