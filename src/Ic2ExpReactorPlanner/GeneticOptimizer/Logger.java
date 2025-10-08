@@ -1,5 +1,7 @@
 package Ic2ExpReactorPlanner.GeneticOptimizer;
 
+import jdk.jfr.StackTrace;
+
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -9,6 +11,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * A simple static utility class for logging messages to the console and optionally to a file.
@@ -74,6 +79,52 @@ public class Logger {
                 e.printStackTrace();
             }
         }
+    }
+
+    /**
+     * Logs a custom message followed by a {@link Throwable} at the {@link LogLevel#ERROR} level,
+     * including its stack trace.
+     * <p>
+     * This method allows for prepending a contextual message to the standard exception log output.
+     * It formats the exception for clear and readable output, intelligently extracting the primary
+     * error message (preferring {@code error.getCause()} if it exists) and appending it after
+     * your custom text. The full stack trace is then added, with each frame indented for
+     * better visibility.
+     *
+     * <p><b>Example Usage:</b>
+     * <pre>
+     * String filePath = "data/user-profiles.csv";
+     * try {
+     *     // Some operation that might fail
+     *     processFile(filePath);
+     * } catch (IOException e) {
+     *     // Logs the custom message, the IOException, and its formatted stack trace
+     *     Logger.log(e, "Critical failure while processing file: " + filePath);
+     * }
+     * </pre>
+     *
+     * @param error   The non-null exception or error to be logged.
+     * @param message A custom, contextual message to prepend to the exception details.
+     */
+    public static void log(Throwable error, String message) {
+        String prefix = message == null || message.isEmpty() ? "" : message + ": ";
+        String causeMessage = prefix + "[" + Optional.ofNullable(error.getCause())
+                .map(Throwable::toString)
+                .orElse(error.toString()) + "]";
+
+        StringBuilder logMessage = new StringBuilder(causeMessage);
+
+        StackTraceElement[] stackTrace = error.getStackTrace();
+        if (stackTrace != null && stackTrace.length > 0) {
+            logMessage.append("\n\t");
+            logMessage.append(
+                    Arrays.stream(stackTrace)
+                            .map(StackTraceElement::toString)
+                            .collect(Collectors.joining("\n\t"))
+            );
+        }
+
+        Logger.log(LogLevel.ERROR, logMessage.toString());
     }
 
     /**

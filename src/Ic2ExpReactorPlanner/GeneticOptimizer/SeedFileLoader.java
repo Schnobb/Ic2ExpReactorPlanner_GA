@@ -26,7 +26,7 @@ public class SeedFileLoader {
                     .filter(line -> !line.trim().isEmpty())
                     .collect(Collectors.joining("\n"));
         } catch (IOException e) {
-            e.printStackTrace();
+            Logger.log(e, "Could not load seed file '" + path + "'");
             return null;
         }
 

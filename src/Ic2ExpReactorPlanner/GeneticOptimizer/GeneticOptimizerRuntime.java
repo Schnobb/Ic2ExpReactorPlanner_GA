@@ -30,8 +30,7 @@ public class GeneticOptimizerRuntime {
         try {
             Logger.setLogFileFromDirectory("GeneticOptimizerRuntime", logDirectory);
         } catch (IOException e) {
-            System.err.println("Error: Could not validate log directory '" + logDirectory + "'.");
-            e.printStackTrace();
+            Logger.log(e, "Could not validate log directory '" + logDirectory + "'");
         }
 
         Logger.log("Loaded config '%s'.", config.getConfigName());

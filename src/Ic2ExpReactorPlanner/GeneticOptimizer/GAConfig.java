@@ -117,7 +117,7 @@ public class GAConfig {
                 return config;
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.log(e, "Config loading has failed");
             return null;
         }
     }

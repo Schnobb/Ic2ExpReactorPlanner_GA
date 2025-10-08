@@ -105,8 +105,7 @@ public class EvolutionEngine {
                     evaluatedGenome.setSimulationData(simulationData);
                 }
             } catch (Exception e) {
-                Logger.log(Logger.LogLevel.ERROR, "A simulation thread failed: %s", e.getCause() != null ? e.getCause().toString() : e.toString());
-                e.printStackTrace();
+                Logger.log(e, "A simulation thread failed");
             }
 
             // actual fitness computation and alpha identification

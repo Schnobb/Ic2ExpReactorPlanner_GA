@@ -5,6 +5,8 @@
  */
 package Ic2ExpReactorPlanner;
 
+import Ic2ExpReactorPlanner.GeneticOptimizer.Logger;
+
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.DataFlavor;
@@ -88,7 +90,7 @@ public class HtmlSelection implements Transferable, ClipboardOwner {
             rtfStr = rtfStr.replace("#NEW_LINE#", "\\line ");
             rtfStr = rtfStr.replace("#END_FONT#", "\\cf0 ");
         } catch (IOException | BadLocationException e) {
-            e.printStackTrace();
+            Logger.log(e, "Could not convert input to RTF");
         }
         return rtfStr;
     }
