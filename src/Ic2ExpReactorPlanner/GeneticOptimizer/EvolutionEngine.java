@@ -32,11 +32,11 @@ public class EvolutionEngine {
         this.startingPopulation.addAll(startingPopulation);
     }
 
-    public ArrayList<EvaluatedGenome> Run() {
-        return Run(false);
+    public ArrayList<EvaluatedGenome> run() {
+        return run(false);
     }
 
-    public ArrayList<EvaluatedGenome> Run(boolean verbose) {
+    public ArrayList<EvaluatedGenome> run(boolean verbose) {
         long globalStartTime = System.nanoTime();
         double overallBestFitness = -1;
 
@@ -114,8 +114,8 @@ public class EvolutionEngine {
             double totalFitness = 0;
             EvaluatedGenome alpha = population.get(0);
             for (EvaluatedGenome evaluatedGenome : population) {
-                double fitness = EvaluateGenomeFitness(evaluatedGenome);
-                evaluatedGenome.setFitness(EvaluateGenomeFitness(evaluatedGenome));
+                double fitness = evaluateGenomeFitness(evaluatedGenome);
+                evaluatedGenome.setFitness(evaluateGenomeFitness(evaluatedGenome));
                 totalFitness += fitness;
 
                 if (evaluatedGenome.getFitness() > 0) stableCount++;
@@ -247,19 +247,19 @@ public class EvolutionEngine {
         return population;
     }
 
-    private double EvaluateGenomeFitness(EvaluatedGenome evaluatedGenome) {
+    private double evaluateGenomeFitness(EvaluatedGenome evaluatedGenome) {
         double fitness = 0.0;
 
         // Unstable reactors are disqualified, might look into heavily penalizing them in the future to reward experimentation
         // 50% heat is too much, disqualify.
-        // TODO: put that in a config somewhere
+        // TODO: put that in a config somewhere. Actually do we even need this?
         if (evaluatedGenome.getSimulationData().maxTemp > 5000)
             return 0.0;
 
         SimulationData simulationData = evaluatedGenome.getSimulationData();
 
         double avgEUOutput = simulationData.avgEUOutput;
-        double fuelEfficiency = ComputeGenomeFuelEfficiency(evaluatedGenome.getGenome(), avgEUOutput);
+        double fuelEfficiency = computeGenomeFuelEfficiency(evaluatedGenome.getGenome(), avgEUOutput);
 
         // Power output, the basis of the fitness
         fitness += avgEUOutput * this.config.fitness.euOutputWeight;
@@ -276,13 +276,12 @@ public class EvolutionEngine {
         fitness -= heatPenalty;
 
         // maybe modify by total EU generation? but this will put more importance on later fuels
-        // maybe modify by fuel efficiency (EU/t per rod)
         // maybe further penalize reactors that accumulate too much heat in their component (as a % of the heat capacity of the component)
 
         return fitness;
     }
 
-    private double ComputeGenomeFuelEfficiency(ReactorGenome genome, double avgEUOutput) {
+    private double computeGenomeFuelEfficiency(ReactorGenome genome, double avgEUOutput) {
         int fuelRodCount = genome.getFuelRodCount();
         return fuelRodCount > 0 ? avgEUOutput / (double) fuelRodCount : 0;
     }

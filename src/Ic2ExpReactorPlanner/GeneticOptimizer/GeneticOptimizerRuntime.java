@@ -53,7 +53,7 @@ public class GeneticOptimizerRuntime {
         }
 
         // Run
-        ArrayList<EvolutionEngine.EvaluatedGenome> finalPopulation = evolutionEngine.Run(true);
+        ArrayList<EvolutionEngine.EvaluatedGenome> finalPopulation = evolutionEngine.run(true);
 
         // Show the top 10 reactor designs
         finalPopulation.sort(Comparator.comparingDouble(EvolutionEngine.EvaluatedGenome::getFitness).reversed());

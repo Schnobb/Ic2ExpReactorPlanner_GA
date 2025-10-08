@@ -32,8 +32,8 @@ public class ReactorSimulator {
     private int minInactiveTime;
     private int maxInactiveTime;
 
-    private double minEUoutput;
-    private double maxEUoutput;
+    private double minEUOutput;
+    private double maxEUOutput;
     private double minHeatOutput;
     private double maxHeatOutput;
 
@@ -44,6 +44,10 @@ public class ReactorSimulator {
 
     private int redstoneUsed;
     private int lapisUsed;
+
+    private int reactorTicks;
+    private int cooldownTicks;
+    private int totalRodCount;
 
     private double totalHullHeating;
     private double totalComponentHeating;
@@ -60,8 +64,8 @@ public class ReactorSimulator {
 
     public ReactorSimulator() {
         replacedItems = new MaterialsList();
-        alreadyBroken = new boolean[6][9];
-        needsCooldown = new boolean[6][9];
+        alreadyBroken = new boolean[6][9]; // nice
+        needsCooldown = new boolean[6][9]; // nice
 
         this.resetState();
     }
@@ -87,8 +91,8 @@ public class ReactorSimulator {
         minInactiveTime = Integer.MAX_VALUE;
         maxInactiveTime = 0;
 
-        minEUoutput = Double.MAX_VALUE;
-        maxEUoutput = 0.0;
+        minEUOutput = Double.MAX_VALUE;
+        maxEUOutput = 0.0;
         minHeatOutput = Double.MAX_VALUE;
         maxHeatOutput = 0.0;
 
@@ -98,6 +102,10 @@ public class ReactorSimulator {
 
         redstoneUsed = 0;
         lapisUsed = 0;
+
+        reactorTicks = 0;
+        cooldownTicks = 0;
+        totalRodCount = 0;
 
         totalHullHeating = 0;
         totalComponentHeating = 0;
@@ -114,6 +122,14 @@ public class ReactorSimulator {
         }
     }
 
+    public int getReactorTicks() {
+        return this.reactorTicks;
+    }
+
+    public int getCooldownTicks() {
+        return this.cooldownTicks;
+    }
+
     public SimulationData runSimulation(Reactor reactor) {
         return runSimulation(reactor, false, null);
     }
@@ -123,11 +139,8 @@ public class ReactorSimulator {
         this.publisher = publisher;
 
         data.startTime = System.nanoTime();
-        int reactorTicks = 0;
-        int cooldownTicks = 0;
-        int totalRodCount = 0;
 
-        publish(getI18n("Simulation.Started"));
+        sendToPublisher(getI18n("Simulation.Started"));
         reactor.setCurrentHeat(initialHeat);
         reactor.clearVentedHeat();
         double minReactorHeat = initialHeat;
@@ -146,13 +159,13 @@ public class ReactorSimulator {
             component.clearDamage();
             totalRodCount += component.getRodCount();
             component.cacheNeighbors(reactor);
-            publish(String.format("R%dC%d:0xC0C0C0", component.getRow(), component.getCol())); //NOI18N
+            sendToPublisher(String.format("R%dC%d:0xC0C0C0", component.getRow(), component.getCol())); //NOI18N
         }
 
         data.totalRodCount = totalRodCount;
-        double lastEUoutput = 0.0;
+        double lastEUoutput;
         double totalEUoutput = 0.0;
-        double lastHeatOutput = 0.0;
+        double lastHeatOutput;
         double totalHeatOutput = 0.0;
         double maxGeneratedHeat = 0.0;
         allFuelRodsDepleted = false;
@@ -234,8 +247,8 @@ public class ReactorSimulator {
                         }
                     }
                 }
-                minEUoutput = Math.min(lastEUoutput, minEUoutput);
-                maxEUoutput = Math.max(lastEUoutput, maxEUoutput);
+                minEUOutput = Math.min(lastEUoutput, minEUOutput);
+                maxEUOutput = Math.max(lastEUoutput, maxEUOutput);
                 minHeatOutput = Math.min(lastHeatOutput, minHeatOutput);
                 maxHeatOutput = Math.max(lastHeatOutput, maxHeatOutput);
             }
@@ -246,10 +259,10 @@ public class ReactorSimulator {
 
         data.minTemp = minReactorHeat;
         data.maxTemp = maxReactorHeat;
-        publish(formatI18n("Simulation.ReactorMinTemp", minReactorHeat));
-        publish(formatI18n("Simulation.ReactorMaxTemp", maxReactorHeat));
+        sendToPublisher(formatI18n("Simulation.ReactorMinTemp", minReactorHeat));
+        sendToPublisher(formatI18n("Simulation.ReactorMaxTemp", maxReactorHeat));
         if (reactor.getCurrentHeat() < reactor.getMaxHeat()) {
-            publish(formatI18n("Simulation.TimeWithoutExploding", reactorTicks));
+            sendToPublisher(formatI18n("Simulation.TimeWithoutExploding", reactorTicks));
             if (reactor.isPulsed()) {
                 String rangeString = "";
                 if (maxActiveTime > minActiveTime) {
@@ -257,19 +270,19 @@ public class ReactorSimulator {
                 } else if (minActiveTime < activeTime) {
                     rangeString = formatI18n("Simulation.ActiveTimeSingle", minActiveTime);
                 }
-                publish(formatI18n("Simulation.ActiveTime", activeTime, rangeString));
+                sendToPublisher(formatI18n("Simulation.ActiveTime", activeTime, rangeString));
                 rangeString = "";
                 if (maxInactiveTime > minInactiveTime) {
                     rangeString = formatI18n("Simulation.InactiveTimeRange", minInactiveTime, maxInactiveTime);
                 } else if (minInactiveTime < inactiveTime) {
                     rangeString = formatI18n("Simulation.InactiveTimeSingle", minInactiveTime);
                 }
-                publish(formatI18n("Simulation.InactiveTime", inactiveTime, rangeString));
+                sendToPublisher(formatI18n("Simulation.InactiveTime", inactiveTime, rangeString));
             }
             final String replacedItemsString = replacedItems.toString();
             if (!replacedItemsString.isEmpty()) {
                 data.replacedItems = new MaterialsList(replacedItems);
-                publish(formatI18n("Simulation.ComponentsReplaced", replacedItemsString));
+                sendToPublisher(formatI18n("Simulation.ComponentsReplaced", replacedItemsString));
             }
 
             if (reactorTicks > 0) {
@@ -280,35 +293,35 @@ public class ReactorSimulator {
                     data.minHUoutput = 2 * minHeatOutput;
                     data.maxHUoutput = 2 * maxHeatOutput;
                     if (totalHeatOutput > 0) {
-                        publish(formatI18n("Simulation.HeatOutputs",
+                        sendToPublisher(formatI18n("Simulation.HeatOutputs",
                                 DECIMAL_FORMAT.format(40 * totalHeatOutput),
                                 DECIMAL_FORMAT.format(2 * totalHeatOutput / reactorTicks),
                                 DECIMAL_FORMAT.format(2 * minHeatOutput),
                                 DECIMAL_FORMAT.format(2 * maxHeatOutput)));
                         if (totalRodCount > 0) {
-                            publish(formatI18n("Simulation.Efficiency", totalHeatOutput / reactorTicks / 4 / totalRodCount, minHeatOutput / 4 / totalRodCount, maxHeatOutput / 4 / totalRodCount));
+                            sendToPublisher(formatI18n("Simulation.Efficiency", totalHeatOutput / reactorTicks / 4 / totalRodCount, minHeatOutput / 4 / totalRodCount, maxHeatOutput / 4 / totalRodCount));
                         }
                     }
                 } else {
                     data.totalEUoutput = totalEUoutput;
                     data.avgEUOutput = totalEUoutput / (reactorTicks * 20);
-                    data.minEUoutput = minEUoutput / 20.0;
-                    data.maxEUoutput = maxEUoutput / 20.0;
+                    data.minEUoutput = minEUOutput / 20.0;
+                    data.maxEUoutput = maxEUOutput / 20.0;
                     if (totalEUoutput > 0) {
-                        publish(formatI18n("Simulation.EUOutputs",
+                        sendToPublisher(formatI18n("Simulation.EUOutputs",
                                 DECIMAL_FORMAT.format(totalEUoutput),
                                 DECIMAL_FORMAT.format(totalEUoutput / (reactorTicks * 20)),
-                                DECIMAL_FORMAT.format(minEUoutput / 20.0),
-                                DECIMAL_FORMAT.format(maxEUoutput / 20.0)));
+                                DECIMAL_FORMAT.format(minEUOutput / 20.0),
+                                DECIMAL_FORMAT.format(maxEUOutput / 20.0)));
                         if (totalRodCount > 0) {
-                            publish(formatI18n("Simulation.Efficiency", totalEUoutput / reactorTicks / 100 / totalRodCount, minEUoutput / 100 / totalRodCount, maxEUoutput / 100 / totalRodCount));
+                            sendToPublisher(formatI18n("Simulation.Efficiency", totalEUoutput / reactorTicks / 100 / totalRodCount, minEUOutput / 100 / totalRodCount, maxEUOutput / 100 / totalRodCount));
                         }
                     }
                 }
             }
 
             if (reactor.getCurrentHeat() > 0.0) {
-                publish(formatI18n("Simulation.ReactorRemainingHeat", reactor.getCurrentHeat()));
+                sendToPublisher(formatI18n("Simulation.ReactorRemainingHeat", reactor.getCurrentHeat()));
             }
 
             double prevReactorHeat = reactor.getCurrentHeat();
@@ -322,13 +335,13 @@ public class ReactorSimulator {
                     continue;
 
                 prevTotalComponentHeat += component.getCurrentHeat();
-                publish(String.format("R%dC%d:0xFFA500", component.getRow(), component.getCol())); // NOI18N
+                sendToPublisher(String.format("R%dC%d:0xFFA500", component.getRow(), component.getCol())); // NOI18N
                 if (loggingEnabled)
                     component.info.append(formatI18n("ComponentInfo.RemainingHeat", component.getCurrentHeat()));
             }
 
             if (prevReactorHeat == 0.0 && prevTotalComponentHeat == 0.0) {
-                publish(getI18n("Simulation.NoCooldown"));
+                sendToPublisher(getI18n("Simulation.NoCooldown"));
             } else if (reactor.getCurrentHeat() < reactor.getMaxHeat()) {
                 double currentTotalComponentHeat = prevTotalComponentHeat;
                 int reactorCooldownTime = 0;
@@ -338,7 +351,6 @@ public class ReactorSimulator {
                     if (prevReactorHeat == 0.0) {
                         reactorCooldownTime = cooldownTicks;
                     }
-                    prevTotalComponentHeat = currentTotalComponentHeat;
                     for (int row = 0; row < 6; row++) {
                         for (int col = 0; col < 9; col++) {
                             ReactorItem component = reactor.getComponentAt(row, col);
@@ -350,8 +362,8 @@ public class ReactorSimulator {
                     }
                     lastHeatOutput = reactor.getVentedHeat();
                     totalHeatOutput += lastHeatOutput;
-                    minEUoutput = Math.min(lastEUoutput, minEUoutput);
-                    maxEUoutput = Math.max(lastEUoutput, maxEUoutput);
+                    minEUOutput = Math.min(lastEUoutput, minEUOutput);
+                    maxEUOutput = Math.max(lastEUoutput, maxEUOutput);
                     minHeatOutput = Math.min(lastHeatOutput, minHeatOutput);
                     maxHeatOutput = Math.max(lastHeatOutput, maxHeatOutput);
                     cooldownTicks++;
@@ -372,15 +384,15 @@ public class ReactorSimulator {
                 } while (lastHeatOutput > 0 && cooldownTicks < 50000);
                 if (reactor.getCurrentHeat() < reactor.getMaxHeat()) {
                     if (reactor.getCurrentHeat() == 0.0) {
-                        publish(formatI18n("Simulation.ReactorCooldownTime", reactorCooldownTime));
+                        sendToPublisher(formatI18n("Simulation.ReactorCooldownTime", reactorCooldownTime));
                     } else if (reactorCooldownTime > 0) {
-                        publish(formatI18n("Simulation.ReactorResidualHeat", reactor.getCurrentHeat(), reactorCooldownTime));
+                        sendToPublisher(formatI18n("Simulation.ReactorResidualHeat", reactor.getCurrentHeat(), reactorCooldownTime));
                     }
-                    publish(formatI18n("Simulation.TotalCooldownTime", cooldownTicks));
+                    sendToPublisher(formatI18n("Simulation.TotalCooldownTime", cooldownTicks));
                 }
             }
         } else {
-            publish(formatI18n("Simulation.ReactorOverheatedTime", reactorTicks));
+            sendToPublisher(formatI18n("Simulation.ReactorOverheatedTime", reactorTicks));
             double explosionPower = 10.0;
             double explosionPowerMult = 1.0;
 
@@ -389,7 +401,7 @@ public class ReactorSimulator {
                 explosionPowerMult *= component.getExplosionPowerMultiplier();
             }
             explosionPower *= explosionPowerMult;
-            publish(formatI18n("Simulation.ExplosionPower", explosionPower));
+            sendToPublisher(formatI18n("Simulation.ExplosionPower", explosionPower));
         }
 
         double totalEffectiveVentCooling = 0.0;
@@ -427,29 +439,29 @@ public class ReactorSimulator {
         }
 
         if (totalVentCoolingCapacity > 0) {
-            publish(formatI18n("Simulation.TotalVentCooling", totalEffectiveVentCooling, totalVentCoolingCapacity));
+            sendToPublisher(formatI18n("Simulation.TotalVentCooling", totalEffectiveVentCooling, totalVentCoolingCapacity));
         }
         showHeatingCooling(reactor, data, reactorTicks);  // Call to show this info in case it hasn't already been shown, such as for an automated reactor.
         if (totalCellCooling > 0) {
-            publish(formatI18n("Simulation.TotalCellCooling", totalCellCooling));
+            sendToPublisher(formatI18n("Simulation.TotalCellCooling", totalCellCooling));
         }
         if (totalCondensatorCooling > 0) {
-            publish(formatI18n("Simulation.TotalCondensatorCooling", totalCondensatorCooling));
+            sendToPublisher(formatI18n("Simulation.TotalCondensatorCooling", totalCondensatorCooling));
         }
         if (maxGeneratedHeat > 0) {
-            publish(formatI18n("Simulation.MaxHeatGenerated", maxGeneratedHeat));
+            sendToPublisher(formatI18n("Simulation.MaxHeatGenerated", maxGeneratedHeat));
         }
         if (redstoneUsed > 0) {
-            publish(formatI18n("Simulation.RedstoneUsed", redstoneUsed));
+            sendToPublisher(formatI18n("Simulation.RedstoneUsed", redstoneUsed));
         }
         if (lapisUsed > 0) {
-            publish(formatI18n("Simulation.LapisUsed", lapisUsed));
+            sendToPublisher(formatI18n("Simulation.LapisUsed", lapisUsed));
         }
         double totalCooling = totalEffectiveVentCooling + totalCellCooling + totalCondensatorCooling;
         if (totalCooling >= maxGeneratedHeat) {
-            publish(formatI18n("Simulation.ExcessCooling", totalCooling - maxGeneratedHeat));
+            sendToPublisher(formatI18n("Simulation.ExcessCooling", totalCooling - maxGeneratedHeat));
         } else {
-            publish(formatI18n("Simulation.ExcessHeating", maxGeneratedHeat - totalCooling));
+            sendToPublisher(formatI18n("Simulation.ExcessHeating", maxGeneratedHeat - totalCooling));
         }
 
         data.endTime = System.nanoTime();
@@ -463,7 +475,7 @@ public class ReactorSimulator {
             if (component.isBroken() && !alreadyBroken[row][col]) {
                 alreadyBroken[row][col] = true;
                 if (component.getRodCount() == 0) {
-                    publish(String.format("R%dC%d:0xFF0000", row, col)); //NOI18N
+                    sendToPublisher(String.format("R%dC%d:0xFF0000", row, col)); //NOI18N
                     if (logginEnabled)
                         component.info.append(formatI18n("ComponentInfo.BrokeTime", reactorTicks));
                     if (componentsIntact) {
@@ -478,26 +490,26 @@ public class ReactorSimulator {
                             data.prebreakAvgHUoutput = 2 * totalHeatOutput / reactorTicks;
                             data.prebreakMinHUoutput = 2 * minHeatOutput;
                             data.prebreakMaxHUoutput = 2 * maxHeatOutput;
-                            publish(formatI18n("Simulation.HeatOutputsBeforeBreak",
+                            sendToPublisher(formatI18n("Simulation.HeatOutputsBeforeBreak",
                                     DECIMAL_FORMAT.format(40 * totalHeatOutput),
                                     DECIMAL_FORMAT.format(2 * totalHeatOutput / reactorTicks),
                                     DECIMAL_FORMAT.format(2 * minHeatOutput),
                                     DECIMAL_FORMAT.format(2 * maxHeatOutput)));
                             if (totalRodCount > 0) {
-                                publish(formatI18n("Simulation.Efficiency", totalHeatOutput / reactorTicks / 4 / totalRodCount, minHeatOutput / 4 / totalRodCount, maxHeatOutput / 4 / totalRodCount));
+                                sendToPublisher(formatI18n("Simulation.Efficiency", totalHeatOutput / reactorTicks / 4 / totalRodCount, minHeatOutput / 4 / totalRodCount, maxHeatOutput / 4 / totalRodCount));
                             }
                         } else {
                             data.prebreakTotalEUoutput = totalEUoutput;
                             data.prebreakAvgEUoutput = totalEUoutput / (reactorTicks * 20);
-                            data.prebreakMinEUoutput = minEUoutput / 20.0;
-                            data.prebreakMaxEUoutput = maxEUoutput / 20.0;
-                            publish(formatI18n("Simulation.EUOutputsBeforeBreak",
+                            data.prebreakMinEUoutput = minEUOutput / 20.0;
+                            data.prebreakMaxEUoutput = maxEUOutput / 20.0;
+                            sendToPublisher(formatI18n("Simulation.EUOutputsBeforeBreak",
                                     DECIMAL_FORMAT.format(totalEUoutput),
                                     DECIMAL_FORMAT.format(totalEUoutput / (reactorTicks * 20)),
-                                    DECIMAL_FORMAT.format(minEUoutput / 20.0),
-                                    DECIMAL_FORMAT.format(maxEUoutput / 20.0)));
+                                    DECIMAL_FORMAT.format(minEUOutput / 20.0),
+                                    DECIMAL_FORMAT.format(maxEUOutput / 20.0)));
                             if (totalRodCount > 0) {
-                                publish(formatI18n("Simulation.Efficiency", totalEUoutput / reactorTicks / 100 / totalRodCount, minEUoutput / 100 / totalRodCount, maxEUoutput / 100 / totalRodCount));
+                                sendToPublisher(formatI18n("Simulation.Efficiency", totalEUoutput / reactorTicks / 100 / totalRodCount, minEUOutput / 100 / totalRodCount, maxEUOutput / 100 / totalRodCount));
                             }
                         }
                     }
@@ -507,38 +519,38 @@ public class ReactorSimulator {
                     data.firstRodDepletedRow = row;
                     data.firstRodDepletedCol = col;
                     data.firstRodDepletedDescription = component.toString();
-                    publish(formatI18n("Simulation.FirstRodDepletedDetails", component.toString(), row, col, reactorTicks));
+                    sendToPublisher(formatI18n("Simulation.FirstRodDepletedDetails", component.toString(), row, col, reactorTicks));
                     if (reactor.isFluid()) {
                         data.predepleteTotalHUoutput = 40 * totalHeatOutput;
                         data.predepleteAvgHUoutput = 2 * totalHeatOutput / reactorTicks;
                         data.predepleteMinHUoutput = 2 * minHeatOutput;
                         data.predepleteMaxHUoutput = 2 * maxHeatOutput;
-                        publish(formatI18n("Simulation.HeatOutputsBeforeDepleted",
+                        sendToPublisher(formatI18n("Simulation.HeatOutputsBeforeDepleted",
                                 DECIMAL_FORMAT.format(40 * totalHeatOutput),
                                 DECIMAL_FORMAT.format(2 * totalHeatOutput / reactorTicks),
                                 DECIMAL_FORMAT.format(2 * minHeatOutput),
                                 DECIMAL_FORMAT.format(2 * maxHeatOutput)));
                         if (totalRodCount > 0) {
-                            publish(formatI18n("Simulation.Efficiency", totalHeatOutput / reactorTicks / 4 / totalRodCount, minHeatOutput / 4 / totalRodCount, maxHeatOutput / 4 / totalRodCount));
+                            sendToPublisher(formatI18n("Simulation.Efficiency", totalHeatOutput / reactorTicks / 4 / totalRodCount, minHeatOutput / 4 / totalRodCount, maxHeatOutput / 4 / totalRodCount));
                         }
                     } else {
                         data.predepleteTotalEUoutput = totalEUoutput;
                         data.predepleteAvgEUoutput = totalEUoutput / (reactorTicks * 20);
-                        data.predepleteMinEUoutput = minEUoutput / 20.0;
-                        data.predepleteMaxEUoutput = maxEUoutput / 20.0;
-                        publish(formatI18n("Simulation.EUOutputsBeforeDepleted",
+                        data.predepleteMinEUoutput = minEUOutput / 20.0;
+                        data.predepleteMaxEUoutput = maxEUOutput / 20.0;
+                        sendToPublisher(formatI18n("Simulation.EUOutputsBeforeDepleted",
                                 DECIMAL_FORMAT.format(totalEUoutput),
                                 DECIMAL_FORMAT.format(totalEUoutput / (reactorTicks * 20)),
-                                DECIMAL_FORMAT.format(minEUoutput / 20.0),
-                                DECIMAL_FORMAT.format(maxEUoutput / 20.0)));
+                                DECIMAL_FORMAT.format(minEUOutput / 20.0),
+                                DECIMAL_FORMAT.format(maxEUOutput / 20.0)));
                         if (totalRodCount > 0) {
-                            publish(formatI18n("Simulation.Efficiency", totalEUoutput / reactorTicks / 100 / totalRodCount, minEUoutput / 100 / totalRodCount, maxEUoutput / 100 / totalRodCount));
+                            sendToPublisher(formatI18n("Simulation.Efficiency", totalEUoutput / reactorTicks / 100 / totalRodCount, minEUOutput / 100 / totalRodCount, maxEUOutput / 100 / totalRodCount));
                         }
                     }
                     data.predepleteMinTemp = minReactorHeat;
                     data.predepleteMaxTemp = maxReactorHeat;
-                    publish(formatI18n("Simulation.ReactorMinTempBeforeDepleted", minReactorHeat));
-                    publish(formatI18n("Simulation.ReactorMaxTempBeforeDepleted", maxReactorHeat));
+                    sendToPublisher(formatI18n("Simulation.ReactorMinTempBeforeDepleted", minReactorHeat));
+                    sendToPublisher(formatI18n("Simulation.ReactorMaxTempBeforeDepleted", maxReactorHeat));
                 }
                 showHeatingCooling(reactor, data, reactorTicks);
             }
@@ -602,32 +614,32 @@ public class ReactorSimulator {
 
     private void checkReactorTemperature(Reactor reactor, SimulationData data, final int reactorTicks) {
         if (reactor.getCurrentHeat() < 0.5 * reactor.getMaxHeat() && !reachedBelow50 && reachedEvaporate) {
-            publish(formatI18n("Simulation.TimeToBelow50", reactorTicks));
+            sendToPublisher(formatI18n("Simulation.TimeToBelow50", reactorTicks));
             reachedBelow50 = true;
             data.timeToBelow50 = reactorTicks;
         }
         if (reactor.getCurrentHeat() >= 0.4 * reactor.getMaxHeat() && !reachedBurn) {
-            publish(formatI18n("Simulation.TimeToBurn", reactorTicks));
+            sendToPublisher(formatI18n("Simulation.TimeToBurn", reactorTicks));
             reachedBurn = true;
             data.timeToBurn = reactorTicks;
         }
         if (reactor.getCurrentHeat() >= 0.5 * reactor.getMaxHeat() && !reachedEvaporate) {
-            publish(formatI18n("Simulation.TimeToEvaporate", reactorTicks));
+            sendToPublisher(formatI18n("Simulation.TimeToEvaporate", reactorTicks));
             reachedEvaporate = true;
             data.timeToEvaporate = reactorTicks;
         }
         if (reactor.getCurrentHeat() >= 0.7 * reactor.getMaxHeat() && !reachedHurt) {
-            publish(formatI18n("Simulation.TimeToHurt", reactorTicks));
+            sendToPublisher(formatI18n("Simulation.TimeToHurt", reactorTicks));
             reachedHurt = true;
             data.timeToHurt = reactorTicks;
         }
         if (reactor.getCurrentHeat() >= 0.85 * reactor.getMaxHeat() && !reachedLava) {
-            publish(formatI18n("Simulation.TimeToLava", reactorTicks));
+            sendToPublisher(formatI18n("Simulation.TimeToLava", reactorTicks));
             reachedLava = true;
             data.timeToLava = reactorTicks;
         }
         if (reactor.getCurrentHeat() >= reactor.getMaxHeat() && !reachedExplode) {
-            publish(formatI18n("Simulation.TimeToXplode", reactorTicks));
+            sendToPublisher(formatI18n("Simulation.TimeToXplode", reactorTicks));
             reachedExplode = true;
             data.timeToXplode = reactorTicks;
         }
@@ -678,22 +690,22 @@ public class ReactorSimulator {
                 data.ventCooling = totalVentCooling / (reactorTicks - 20);
                 data.ventCoolingCapacity = totalVentCoolingCapacity;
                 if (totalHullHeating > 0) {
-                    publish(formatI18n("Simulation.HullHeating", totalHullHeating / (reactorTicks - 20)));
+                    sendToPublisher(formatI18n("Simulation.HullHeating", totalHullHeating / (reactorTicks - 20)));
                 }
                 if (totalComponentHeating > 0) {
-                    publish(formatI18n("Simulation.ComponentHeating", totalComponentHeating / (reactorTicks - 20)));
+                    sendToPublisher(formatI18n("Simulation.ComponentHeating", totalComponentHeating / (reactorTicks - 20)));
                 }
                 if (totalHullCoolingCapacity > 0) {
-                    publish(formatI18n("Simulation.HullCooling", totalHullCooling / (reactorTicks - 20), totalHullCoolingCapacity));
+                    sendToPublisher(formatI18n("Simulation.HullCooling", totalHullCooling / (reactorTicks - 20), totalHullCoolingCapacity));
                 }
                 if (totalVentCoolingCapacity > 0) {
-                    publish(formatI18n("Simulation.VentCooling", totalVentCooling / (reactorTicks - 20), totalVentCoolingCapacity));
+                    sendToPublisher(formatI18n("Simulation.VentCooling", totalVentCooling / (reactorTicks - 20), totalVentCoolingCapacity));
                 }
             }
         }
     }
 
-    private void publish(String msg) {
+    private void sendToPublisher(String msg) {
         if (this.publisher != null)
             publisher.accept(msg);
     }
