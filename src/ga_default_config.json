@@ -38,7 +38,10 @@
     "metaFuelEfficiencyTarget": 800,
 
     // A broken component at the end of the simulation is a sign of an unstable reactor. Should be heavily penalized.
-    "componentBrokenPenalty": 0.5
+    "componentBrokenPenalty": 0.5,
+
+    // Each HU of maxTemp decreases fitness score by heatPenaltyMultiplier
+    "heatPenaltyMultiplier": 1.0
   },
   "mutation": {
     "refinement": {

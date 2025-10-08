@@ -251,7 +251,9 @@ public class EvolutionEngine {
         double fitness = 0.0;
 
         // Unstable reactors are disqualified, might look into heavily penalizing them in the future to reward experimentation
-        if (evaluatedGenome.getSimulationData().maxTemp > 0)
+        // 50% heat is too much, disqualify.
+        // TODO: put that in a config somewhere
+        if (evaluatedGenome.getSimulationData().maxTemp > 5000)
             return 0.0;
 
         SimulationData simulationData = evaluatedGenome.getSimulationData();
@@ -269,6 +271,9 @@ public class EvolutionEngine {
 
         if (simulationData.firstComponentBrokenTime < Integer.MAX_VALUE)
             fitness *= this.config.fitness.componentBrokenPenalty;
+
+        double heatPenalty = evaluatedGenome.getSimulationData().maxTemp * this.config.fitness.heatPenaltyMultiplier;
+        fitness -= heatPenalty;
 
         // maybe modify by total EU generation? but this will put more importance on later fuels
         // maybe modify by fuel efficiency (EU/t per rod)

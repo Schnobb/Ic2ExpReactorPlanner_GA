@@ -47,6 +47,7 @@ public class GAConfig {
         public double fuelEfficiencyWeight;
         public double metaFuelEfficiencyTarget;
         public double componentBrokenPenalty;
+        public double heatPenaltyMultiplier;
     }
 
     public static class MutationConfig {

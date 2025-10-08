@@ -1,19 +1,20 @@
 {
   "evolution": {
-    "phaseLengthGenerations": 50,
-    "populationSize": 1000,
-    "maxGeneration": 1000,
-    "alphaCount": 3,
-    "tournamentSizeK": 7,
-    "lowDiversityThreshold": 0.4,
-    "lowDiversityCullingRatio": 0.3,
+    "phaseLengthGenerations": 15, // 50 overnight
+    "populationSize": 1000, // 1000 overnight
+    "maxGeneration": 200, // 5000 overnight
+    "alphaCount": 3, // 10 overnight
+    "tournamentSizeK": 3, // 10 overnight
+    "lowDiversityThreshold": 0.55,
+    "lowDiversityCullingRatio": 0.4,
     "seedFile": null //"preload_meta.txt"
   },
   "fitness": {
     "euOutputWeight":  1.0,
     "fuelEfficiencyWeight": 0.3,
-    "metaFuelEfficiencyTarget": 800,
-    "componentBrokenPenalty": 0.5
+    "metaFuelEfficiencyTarget": 600,
+    "componentBrokenPenalty": 0.85,
+    "heatPenaltyMultiplier": 0.75
   },
   "mutation": {
     "refinement": {
@@ -22,9 +23,9 @@
       "probabilityLayoutPerSlotMutation": 0.0
     },
     "exploration": {
-      "probabilityFuelMutation": 0.02,
-      "probabilityLayoutMutation": 0.135,
-      "probabilityLayoutPerSlotMutation": 0.025
+      "probabilityFuelMutation": 0.03,
+      "probabilityLayoutMutation": 0.2,
+      "probabilityLayoutPerSlotMutation": 0.04
     }
   },
   "components": {
