@@ -10,6 +10,9 @@ import java.util.Random;
 import static org.junit.Assert.*;
 
 public class ReactorGenomeTest {
+    // A small delta for comparing floating-point numbers to account for minor inaccuracies.
+    private static final double DELTA = 0.0001;
+
     @Test
     public void testSerializationCycle_ShouldReturnIdenticalGenome() {
         // Setup
@@ -239,5 +242,97 @@ public class ReactorGenomeTest {
         for (int i = 0; i < genome.getReactorLayout().length; i++){
             assertEquals("Layout gene should now have changed at '" + i + "'", 0, genome.getReactorLayout()[i]);
         }
+    }
+
+    @Test
+    public void testSpeciation_WhenCalculatingSimilarity_ShouldBe1ForIdenticalGenomes() {
+        // Setup
+        GAConfig config = GAConfig.loadConfig(null);
+        assertNotNull("Test setup failed: Could not load config", config);
+
+        // Hijack speciation configs to make tests more consistent
+        config.speciation.speciesSimilarityThreshold = 0.9;
+        config.speciation.fuelLayoutWeight = 0.9;
+        config.speciation.componentsLayoutWeight = 0.1;
+
+        Reactor reactorA = new Reactor();
+        reactorA.setCode("erp=N0nc6OU0SvFZnCLVeUv6NTtSGYRuhPMF5/rPVu58BwJq0rGgaqVCookKH7pbJVRL7i32LAM=");
+
+        Reactor reactorB = new Reactor();
+        reactorB.setCode("erp=N0nc6OU0SvFZnCLVeUv6NTtSGYRuhPMF5/rPVu58BwJq0rGgaqVCookKH7pbJVRL7i32LAM=");
+
+        ReactorGenome genomeA = ReactorGenome.fromReactor(config, reactorA);
+        ReactorGenome genomeB = ReactorGenome.fromReactor(config, reactorB);
+
+        // Test
+        double speciesSimilarity = ReactorGenome.calculateSimilarity(config, genomeA, genomeB);
+
+        // Assert
+        assertEquals(String.format("Calculated similarity should be 1.0 for identical genomes (species similarity %.2f)", speciesSimilarity), 1.0, speciesSimilarity, DELTA);
+    }
+
+    @Test
+    public void testSpeciation_WhenCalculatingSimilarity_ShouldBeSameSpeciesForSimilarGenomes() {
+        // Setup
+        GAConfig config = GAConfig.loadConfig(null);
+        assertNotNull("Test setup failed: Could not load config", config);
+
+        // Hijack speciation configs to make tests more consistent
+        config.speciation.speciesSimilarityThreshold = 0.9;
+        config.speciation.fuelLayoutWeight = 0.85;
+        config.speciation.componentsLayoutWeight = 0.15;
+
+        // reference reactor
+        Reactor reactorA = new Reactor();
+        reactorA.setCode("erp=N0nc6OU0SvFZnCLVeUv6NTtSGYRuhPMF5/rPVu58BwJq0rGgaqVCookKH7pbJVRL7i32LAM=");
+
+        // this reactor has 16/45 component match, with the provided config this should be just over the speciesSimilarityThreshold
+        Reactor reactorB = new Reactor();
+        reactorB.setCode("erp=A3Sdzo5TRK8VmcItV5S/o1O1IZhG6EiX5uNQ4ZZX5RWIRtPH4sQVxSF7yXy/0Rg0aAM=");
+
+        ReactorGenome genomeA = ReactorGenome.fromReactor(config, reactorA);
+        ReactorGenome genomeB = ReactorGenome.fromReactor(config, reactorB);
+
+        // Test
+        double speciesSimilarity = ReactorGenome.calculateSimilarity(config, genomeA, genomeB);
+
+        // Assert
+        assertTrue(String.format("Similar genomes should count as same species (similarity score%.2f)", speciesSimilarity), speciesSimilarity + DELTA > config.speciation.speciesSimilarityThreshold);
+    }
+
+    @Test
+    public void testSpeciation_WhenCalculatingSimilarity_ShouldBeDifferentSpeciesForDifferentGenomes() {
+        // Setup
+        GAConfig config = GAConfig.loadConfig(null);
+        assertNotNull("Test setup failed: Could not load config", config);
+
+        // Hijack speciation configs to make tests more consistent
+        config.speciation.speciesSimilarityThreshold = 0.9;
+        config.speciation.fuelLayoutWeight = 0.9;
+        config.speciation.componentsLayoutWeight = 0.1;
+
+        // reference reactor, Dual Fuel Rod (Uranium)
+        Reactor reactorA = new Reactor();
+        reactorA.setCode("erp=N0nc6OU0SvFZnCLVeUv6NTtSGYRuhPMF5/rPVu58BwJq0rGgaqVCookKH7pbJVRL7i32LAM=");
+
+        // Dual Fuel Rod (MOX) reactor, should get a similarity score of 0.0
+        Reactor reactorB = new Reactor();
+        reactorB.setCode("erp=AN0nc6OU0Rz6w6jd/pKMVSHSxf7iuIgyxZ8Uu+NPBWGixMLV97mJ0BJ2BrnbiYBXbbzJTAM=");
+
+        // Dual Fuel Rod (Uranium) reactor with slightly different fuel placement and different component layout, should be under the threshold for same species
+        Reactor reactorC = new Reactor();
+        reactorC.setCode("erp=N0nc6OUzphbBGTu/kqIVc7xEriE+KThUiL0KKKJxdeoLyJ/WM429Hn73C+GyosGEBgGWLAM=");
+
+        ReactorGenome genomeA = ReactorGenome.fromReactor(config, reactorA);
+        ReactorGenome genomeB = ReactorGenome.fromReactor(config, reactorB);
+        ReactorGenome genomeC = ReactorGenome.fromReactor(config, reactorC);
+
+        // Test
+        double speciesSimilarityAB = ReactorGenome.calculateSimilarity(config, genomeA, genomeB);
+        double speciesSimilarityAC = ReactorGenome.calculateSimilarity(config, genomeA, genomeC);
+
+        // Assert
+        assertEquals(String.format("Different fuel type genomes should have a similarity score of 0.0 (similarity score %.2f)", speciesSimilarityAB), 0.0, speciesSimilarityAB, DELTA);
+        assertTrue(String.format("Genome with significant layout differences should not be classified as the same species (similarity score %.2f)", speciesSimilarityAC), speciesSimilarityAC - DELTA <= config.speciation.speciesSimilarityThreshold);
     }
 }
