@@ -76,12 +76,52 @@ public class ReactorGenome {
         return genome;
     }
 
-    public static double calculateSimilarity(ReactorGenome genomeA, ReactorGenome genomeB) {
-        // TODO: implement a better way of comparing genome, returning a weighted score.
-        //  Fuel type: if different then the designs are completely different (are they really? yes for now)
-        //  Fuel layout: second most important distinguisher. The more similar the fuel layout, the more similar the fuel reactor
-        //  Components layout: least important factor, small variations in component layout should not matter in this
-        return genomeA.equals(genomeB) ? 1.0 : 0.0;
+    public static double calculateSimilarity(GAConfig config, ReactorGenome genomeA, ReactorGenome genomeB) {
+        // thinking about maybe giving some leniency to the fuel type. Perhaps a reactor that only mutated its fuel type could be considered related to its parent?
+        if (genomeA.getFuelType() != genomeB.getFuelType())
+            return 0.0;
+
+        double fuelSimilarityScore = calculateFuelLayoutSimilarity(genomeA, genomeB);
+        double componentsLayoutSimilarityScore = calculateComponentsLayoutSimilarity(genomeA, genomeB);
+
+        return (fuelSimilarityScore * config.speciation.fuelLayoutWeight) + (componentsLayoutSimilarityScore * config.speciation.fuelLayoutWeight);
+    }
+
+    private static double calculateFuelLayoutSimilarity(ReactorGenome genomeA, ReactorGenome genomeB) {
+        assert genomeA.reactorLayout.length == genomeB.reactorLayout.length;
+
+        int matchingCells = 0;
+        int totalCells = genomeA.reactorLayout.length;
+
+        for (int i = 0; i < genomeA.reactorLayout.length; i++) {
+            if (genomeA.isFuelRodAt(i) && genomeB.isFuelRodAt(i))
+                matchingCells++;
+        }
+
+        return (double) matchingCells / (double) totalCells;
+    }
+
+    private static double calculateComponentsLayoutSimilarity(ReactorGenome genomeA, ReactorGenome genomeB) {
+        assert genomeA.reactorLayout.length == genomeB.reactorLayout.length;
+
+        int matchingCells = 0;
+        int relevantCells = 0;
+        int totalCells = genomeA.reactorLayout.length;
+
+        for (int i = 0; i < totalCells; i++) {
+            if(genomeA.isFuelRodAt(i) && genomeB.isFuelRodAt(i))
+                continue;
+
+            relevantCells++;
+            if (genomeA.reactorLayout[i] == genomeB.reactorLayout[i])
+                matchingCells++;
+        }
+
+        return relevantCells > 0 ? (double) matchingCells / (double) relevantCells : 0.0;
+    }
+
+    public boolean isFuelRodAt(int index) {
+        return this.reactorLayout[index % this.reactorLayout.length] == FUEL_VALUE;
     }
 
     public String getERPCode() {

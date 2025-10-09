@@ -5,10 +5,14 @@
     "maxGeneration": 200, // 5000 overnight
     "alphaCount": 3, // 10 overnight
     "tournamentSizeK": 3, // 10 overnight
-    "speciesSimilarityThreshold": 0.85,
     "lowDiversityThreshold": 0.55,
     "lowDiversityCullingRatio": 0.4,
     "seedFile": null //"preload_meta.txt"
+  },
+  "speciation": {
+    "speciesSimilarityThreshold": 0.85,
+    "fuelLayoutWeight": 0.85,
+    "componentsLayoutWeight": 0.15
   },
   "fitness": {
     "euOutputWeight":  1.0,

@@ -5,10 +5,14 @@
     "maxGeneration": 10,
     "alphaCount": 1,
     "tournamentSizeK": 3,
-    "speciesSimilarityThreshold": 0.85,
     "lowDiversityThreshold": 0.25,
     "lowDiversityCullingRatio": 0.4,
     "seedFile": null
+  },
+  "speciation": {
+    "speciesSimilarityThreshold": 0.85,
+    "fuelLayoutWeight": 0.85,
+    "componentsLayoutWeight": 0.15
   },
   "fitness": {
     "euOutputWeight":  1.0,

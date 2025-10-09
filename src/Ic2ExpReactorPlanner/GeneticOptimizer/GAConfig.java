@@ -6,10 +6,12 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 
 public class GAConfig {
     public EvolutionConfig evolution;
+    public SpeciationConfig speciation;
     public FitnessConfig fitness;
     public MutationConfig mutation;
     public ComponentConfig components;
@@ -20,30 +22,54 @@ public class GAConfig {
 
     public static final String DEFAULT_CONFIG_FILE_NAME = "ga_default_config.json";
 
-    private GAConfig() { }
+    private GAConfig() {
+    }
 
     public String getConfigName() {
         return this.configName;
     }
 
-    public static class EvolutionConfig {
+    private static abstract class Config {
+        @Override
+        public String toString() {
+            final String valueDelimiter = " = ";
+            final String fieldsDelimiter = "; ";
+
+            StringBuilder stringBuilder = new StringBuilder();
+            for (Field field : getClass().getFields()) {
+                stringBuilder.append(field.getName())
+                        .append(valueDelimiter);
+                try {
+                    stringBuilder.append(field.get(this));
+                } catch (IllegalAccessException e) {
+                    stringBuilder.append("<inaccessible>");
+                }
+
+                stringBuilder.append(fieldsDelimiter);
+            }
+
+            return stringBuilder.toString();
+        }
+    }
+
+    public static class EvolutionConfig extends Config {
         public int phaseLengthGenerations;
         public int populationSize;
         public int maxGeneration;
         public int alphaCount;
         public int tournamentSizeK;
-        public double speciesSimilarityThreshold;
         public double lowDiversityThreshold;
         public double lowDiversityCullingRatio;
         public String seedFile;
-
-        @Override
-        public String toString() {
-            return String.format("maxGeneration = %d; populationSize = %d; phaseLengthGenerations = %d; alphaCount = %d; tournamentSizeK = %d; lowDiversityThreshold = %.2f; lowDiversityCullingRatio = %.2f", maxGeneration, populationSize, phaseLengthGenerations, alphaCount, tournamentSizeK, lowDiversityThreshold, lowDiversityCullingRatio);
-        }
     }
 
-    public static class FitnessConfig {
+    public static class SpeciationConfig extends Config {
+        public double speciesSimilarityThreshold;
+        public double fuelLayoutWeight;
+        public double componentsLayoutWeight;
+    }
+
+    public static class FitnessConfig extends Config {
         public double euOutputWeight;
         public double fuelEfficiencyWeight;
         public double metaFuelEfficiencyTarget;
@@ -51,26 +77,26 @@ public class GAConfig {
         public double heatPenaltyMultiplier;
     }
 
-    public static class MutationConfig {
+    public static class MutationConfig extends Config {
         public PhaseProbabilities refinement;
         public PhaseProbabilities exploration;
     }
 
-    public static class PhaseProbabilities {
+    public static class PhaseProbabilities extends Config {
         public double probabilityFuelMutation;
         public double probabilityLayoutMutation;
         public double probabilityLayoutPerSlotMutation;
     }
 
-    public static class ComponentConfig {
+    public static class ComponentConfig extends Config {
         public int[] valid;
     }
 
-    public static class FuelConfig {
+    public static class FuelConfig extends Config {
         public int[] valid;
     }
 
-    public static class ReactorConfig {
+    public static class ReactorConfig extends Config {
         public int rowCount;
         public int colCount;
     }

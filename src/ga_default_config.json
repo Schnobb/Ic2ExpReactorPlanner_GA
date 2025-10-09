@@ -15,10 +15,6 @@
     // of parentA and parentB to the population of the next generation.
     "tournamentSizeK": 4, // 5 overnight
 
-    // When comparing genomes for diversity checks, this threshold will be used to tell if two genomes are considered
-    // the same species. Higher thresholds will trigger more "low diversity" injections and will.
-    "speciesSimilarityThreshold": 0.85,
-
     // Low diversity threshold. When reached a culling will occur to inject random designs.
     "lowDiversityThreshold": 0.55,
 
@@ -28,6 +24,19 @@
     // A file containing a simple list of ERP code of reactors that will be injected in gen0 of the EvolutionEngine.
     // One ERP code per line. Ignores comment lines ('//', '#')
     "seedFile": "preload.txt"
+  },
+  "speciation": {
+    // When comparing genomes for diversity checks, this threshold will be used to tell if two genomes are considered
+    // the same species. Higher thresholds will trigger more "low diversity" injections and will.
+    "speciesSimilarityThreshold": 0.85,
+
+    // The weight of the fuel layout in the species comparison algorithm. High importance since this is the major
+    // behavior driver in the layout composition.
+    "fuelLayoutWeight": 0.85,
+
+    // The weight of the other components layout in the species comparison algorithm. Low importance since a lot of
+    // different non-fuel component layouts can give the same end results.
+    "componentsLayoutWeight": 0.15
   },
   "fitness": {
     // This is the weight of the power production of a reactor on its fitness score

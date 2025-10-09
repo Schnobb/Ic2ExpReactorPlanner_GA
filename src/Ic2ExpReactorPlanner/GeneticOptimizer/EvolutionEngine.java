@@ -47,6 +47,7 @@ public class EvolutionEngine {
         long globalStartTime = System.nanoTime();
 
         printVerbose(verbose, "Evolution settings: %s", this.config.evolution.toString());
+        printVerbose(verbose, "Speciation settings: %s", this.config.speciation.toString());
         printVerbose(verbose, "Starting evolution...");
 
         List<ReactorGenome> population = initializePopulation(this.config, this.random, this.startingPopulation);
@@ -222,7 +223,7 @@ public class EvolutionEngine {
         for (ReactorGenome individual : population) {
             boolean newSpecies = true;
             for (ReactorGenome representative : speciesRepresentatives) {
-                if (ReactorGenome.calculateSimilarity(individual, representative) > config.evolution.speciesSimilarityThreshold) {
+                if (ReactorGenome.calculateSimilarity(config, individual, representative) > config.speciation.speciesSimilarityThreshold) {
                     newSpecies = false;
                     break;
                 }

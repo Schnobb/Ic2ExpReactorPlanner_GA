@@ -87,7 +87,7 @@ public class GeneticOptimizerRuntime {
 
             boolean distinctSpecies = false;
             for (EvolutionEngine.EvaluatedGenome champion : top10Species) {
-                if (ReactorGenome.calculateSimilarity(champion.getGenome(), candidate.getGenome()) > config.evolution.speciesSimilarityThreshold) {
+                if (ReactorGenome.calculateSimilarity(config, champion.getGenome(), candidate.getGenome()) > config.speciation.speciesSimilarityThreshold) {
                     distinctSpecies = true;
                     break;
                 }
