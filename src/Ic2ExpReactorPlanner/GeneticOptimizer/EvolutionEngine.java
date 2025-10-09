@@ -55,7 +55,6 @@ public class EvolutionEngine {
 
         while (generation < this.config.evolution.maxGeneration) {
             long generationStartTime = System.nanoTime();
-            double bestFitnessInGeneration = -1;
 
             // Alternate between exploratory phases and refinement phases
             // TODO: decouple this stuff and handle it in its own bubble
@@ -71,45 +70,33 @@ public class EvolutionEngine {
             assert !population.isEmpty() : "Population list cannot be empty.";
 
             // Run simulation and gather the SimulationData from each run
-            evaluatedPopulation = simulatePopulation(population, this.simulatorThreadLocal, this.executor);
+            List<EvaluatedGenome> simulatedPopulation = simulatePopulation(population, this.simulatorThreadLocal, this.executor);
+            // Evaluate the population's fitness's
+            evaluatedPopulation = evaluatePopulationsFitness(simulatedPopulation);
+            // Analyze the current generation's data (stable count, total fitness, etc.)
+            GenerationSummary generationSummary = summarizeGeneration(evaluatedPopulation);
 
-            // Actual fitness computation and alpha identification
-            // TODO: refactor this into a analyzeGeneration returning a GenerationAnalysis class or something
-            int stableCount = 0;
-            double totalFitness = 0;
-            EvaluatedGenome alpha = evaluatedPopulation.get(0);
-            for (EvaluatedGenome evaluatedGenome : evaluatedPopulation) {
-                double fitness = evaluateGenomeFitness(evaluatedGenome);
-                evaluatedGenome.setFitness(evaluateGenomeFitness(evaluatedGenome));
-                totalFitness += fitness;
+            Logger.log(Logger.LogLevel.DEBUG, "Valid designs in generation %d: %d/%d (%.1f%%)", generation, generationSummary.stableDesignsCount, evaluatedPopulation.size(), 100.0 * generationSummary.stableDesignsCount / evaluatedPopulation.size());
 
-                if (evaluatedGenome.getFitness() > 0) stableCount++;
-                if (evaluatedGenome.getFitness() > alpha.getFitness()) alpha = evaluatedGenome;
-            }
-
-            Logger.log(Logger.LogLevel.DEBUG, "Valid designs in generation %d: %d/%d (%.1f%%)", generation, stableCount, evaluatedPopulation.size(), 100.0 * stableCount / evaluatedPopulation.size());
-
-            bestFitnessInGeneration = alpha.getFitness();
-
-            if (bestFitnessInGeneration > overallBestFitness) {
-                overallBestFitness = bestFitnessInGeneration;
+            if (generationSummary.alpha.getFitness() > overallBestFitness) {
+                overallBestFitness = generationSummary.alpha.getFitness();
             }
 
             // Don't need a new population for the last generation
             if (generation < this.config.evolution.maxGeneration - 1) {
-                population = breedNextGeneration(config, random, alpha, evaluatedPopulation, exploratoryPhase, generation);
+                // Create the new population for next generation
+                population = breedNextGeneration(config, random, evaluatedPopulation, exploratoryPhase, generation);
             }
 
             long generationEndTime = System.nanoTime();
             double generationElapsedTimeMS = (generationEndTime - generationStartTime) / 1e6;
 
-            ReactorItem alphaFuelType = ComponentFactory.getDefaultComponent(alpha.getGenome().getFuelType());
+            ReactorItem alphaFuelType = ComponentFactory.getDefaultComponent(generationSummary.alpha.getGenome().getFuelType());
             assert alphaFuelType != null;
-
             String alphaFuelTypeString = alphaFuelType.name;
-            String alphaRender = String.format("%s - %.2fEU/t %s", alphaFuelTypeString, alpha.getSimulationData().avgEUOutput, alpha.getGenome().getERPCode());
+            String alphaRender = String.format("%s - %.2fEU/t %s", alphaFuelTypeString, generationSummary.alpha.getSimulationData().avgEUOutput, generationSummary.alpha.getGenome().getERPCode());
 
-            printVerbose(verbose, "Generation %d [%s] best fitness: %.2f, avg. fitness: %.2f, took %.2fms. Alpha: %s", generation, phaseName, bestFitnessInGeneration, totalFitness / (double) population.size(), generationElapsedTimeMS, alphaRender);
+            printVerbose(verbose, "Generation %d [%s] best fitness: %.2f, avg. fitness: %.2f, took %.2fms. Alpha: %s", generation, phaseName, generationSummary.alpha.getFitness(), generationSummary.totalFitness / (double) population.size(), generationElapsedTimeMS, alphaRender);
             generation++;
         }
 
@@ -130,7 +117,32 @@ public class EvolutionEngine {
         return evaluatedPopulation;
     }
 
-    private List<ReactorGenome> breedNextGeneration(GAConfig config, Random random, EvaluatedGenome alpha, List<EvaluatedGenome> evaluatedPopulation, boolean exploratoryPhase, int generation) {
+    private List<EvaluatedGenome> evaluatePopulationsFitness(List<EvaluatedGenome> simulatedPopulation) {
+        return simulatedPopulation.stream()
+                .map(simulatedGenome -> {
+                    double fitness = evaluateGenomeFitness(simulatedGenome);
+                    EvaluatedGenome evaluatedGenome = new EvaluatedGenome(simulatedGenome.getGenome(), fitness);
+                    evaluatedGenome.setSimulationData(simulatedGenome.getSimulationData());
+
+                    return evaluatedGenome;
+                })
+                .collect(Collectors.toList());
+    }
+
+    private GenerationSummary summarizeGeneration(List<EvaluatedGenome> evaluatedPopulation) {
+        int stableCount = 0;
+        double totalFitness = 0;
+        EvaluatedGenome alpha = evaluatedPopulation.get(0);
+        for (EvaluatedGenome evaluatedGenome : evaluatedPopulation) {
+            totalFitness += evaluatedGenome.getFitness();
+            if (evaluatedGenome.getFitness() > 0) stableCount++;
+            if (evaluatedGenome.getFitness() > alpha.getFitness()) alpha = evaluatedGenome;
+        }
+
+        return new GenerationSummary(alpha, stableCount, totalFitness);
+    }
+
+    private List<ReactorGenome> breedNextGeneration(GAConfig config, Random random, List<EvaluatedGenome> evaluatedPopulation, boolean exploratoryPhase, int generation) {
         List<ReactorGenome> population = evaluatedPopulation.stream().
                 map(EvaluatedGenome::getGenome)
                 .collect(Collectors.toList());
@@ -144,63 +156,22 @@ public class EvolutionEngine {
             Logger.log(Logger.LogLevel.DEBUG, "LOW DIVERSITY IN GENERATION %d. Injecting %d random designs into next generation", generation, randomGenomesInjectCount);
         }
 
-        // Create the new generation
-        List<ReactorGenome> newPopulation = new ArrayList<>();
-
-        // Find the alphas (if more than one) and add them to newPopulation
-        // TODO: refactor alpha handling stuff
-        if (config.evolution.alphaCount == 1) {
-            newPopulation.add(alpha.getGenome().copy());
-        } else {
-            evaluatedPopulation.sort(Comparator.comparingDouble(EvaluatedGenome::getFitness).reversed());
-            for (int i = 0; i < config.evolution.alphaCount; i++) {
-                newPopulation.add(evaluatedPopulation.get(i).getGenome().copy());
-            }
-        }
+        // Create the new generation starting with the alphas
+        List<ReactorGenome> newPopulation = initializeNewPopulationWithAlphas(config.evolution.alphaCount, evaluatedPopulation);
 
         // Fill the rest of the population with the tournament selection breeding
-        // TODO: refactor all this new population stuff
         int tournamentCount = config.evolution.populationSize - newPopulation.size() - randomGenomesInjectCount;
         ReactorGenome.MutationStatTracker statTracker = new ReactorGenome.MutationStatTracker();
 
-        // TODO: create a selectParentViaTournament() function and call it once for each new parent
         for (int i = 0; i < tournamentCount; i++) {
-            List<EvaluatedGenome> tournamentSelection = new ArrayList<>();
-            // tournament selection process for parentA
-            for (int k = 0; k < config.evolution.tournamentSizeK; k++) {
-                tournamentSelection.add(evaluatedPopulation.get(random.nextInt(evaluatedPopulation.size())));
-            }
+            // Parent selection
+            ReactorGenome parentA = selectParentViaTournament(config, random, evaluatedPopulation);
+            ReactorGenome parentB = selectParentViaTournament(config, random, evaluatedPopulation);
 
-            assert !tournamentSelection.isEmpty() : "Tournament competitor list cannot be empty.";
+            // Breeding phase
+            ReactorGenome childGenome = ReactorGenome.crossBreed(config, parentA, parentB, random);
 
-            // grab tournament A winner
-            EvaluatedGenome parentA = tournamentSelection.get(0);
-            for (EvaluatedGenome candidate : tournamentSelection) {
-                if (candidate.getFitness() > parentA.getFitness()) {
-                    parentA = candidate;
-                }
-            }
-
-            tournamentSelection = new ArrayList<>();
-            // tournament selection process for parentB
-            for (int k = 0; k < config.evolution.tournamentSizeK; k++) {
-                tournamentSelection.add(evaluatedPopulation.get(random.nextInt(evaluatedPopulation.size())));
-            }
-
-            assert !tournamentSelection.isEmpty() : "Tournament competitor list cannot be empty.";
-
-            // grab tournament B winner
-            EvaluatedGenome parentB = tournamentSelection.get(0);
-            for (EvaluatedGenome candidate : tournamentSelection) {
-                if (candidate.getFitness() > parentB.getFitness()) {
-                    parentB = candidate;
-                }
-            }
-
-            // breeding phase
-            ReactorGenome childGenome = ReactorGenome.crossBreed(config, parentA.getGenome(), parentB.getGenome(), random);
-
-            // mutation phase
+            // Mutation phase
             GAConfig.PhaseProbabilities mutationProbabilities = exploratoryPhase ? config.mutation.exploration : config.mutation.refinement;
             childGenome.tryMutation(config, mutationProbabilities, random, statTracker);
 
@@ -214,6 +185,28 @@ public class EvolutionEngine {
 
         Logger.log(Logger.LogLevel.DEBUG, "Mutations count in generation %d: " + statTracker, generation);
         return newPopulation;
+    }
+
+    private List<ReactorGenome> initializeNewPopulationWithAlphas(int alphaCount, List<EvaluatedGenome> evaluatedPopulation) {
+        List<ReactorGenome> newPopulation = new ArrayList<>();
+
+        evaluatedPopulation.sort(Comparator.comparingDouble(EvaluatedGenome::getFitness).reversed());
+        for (int i = 0; i < alphaCount; i++) {
+            newPopulation.add(evaluatedPopulation.get(i).getGenome().copy());
+        }
+
+        return newPopulation;
+    }
+
+    private ReactorGenome selectParentViaTournament(GAConfig config, Random random, List<EvaluatedGenome> evaluatedPopulation) {
+        List<EvaluatedGenome> tournamentSelection = new ArrayList<>();
+        for (int k = 0; k < config.evolution.tournamentSizeK; k++) {
+            tournamentSelection.add(evaluatedPopulation.get(random.nextInt(evaluatedPopulation.size())));
+        }
+
+        assert !tournamentSelection.isEmpty() : "Tournament competitor list cannot be empty.";
+
+        return Collections.max(tournamentSelection, Comparator.comparingDouble(EvaluatedGenome::getFitness)).getGenome();
     }
 
     private double calculateSpeciesDiversity(GAConfig config, List<ReactorGenome> population) {
@@ -371,5 +364,17 @@ public class EvolutionEngine {
             this.fitness = fitness;
         }
 
+    }
+
+    private static class GenerationSummary {
+        public EvaluatedGenome alpha;
+        public int stableDesignsCount;
+        public double totalFitness;
+
+        public GenerationSummary(EvaluatedGenome alpha, int stableDesignsCount, double totalFitness) {
+            this.alpha = alpha;
+            this.stableDesignsCount = stableDesignsCount;
+            this.totalFitness = totalFitness;
+        }
     }
 }

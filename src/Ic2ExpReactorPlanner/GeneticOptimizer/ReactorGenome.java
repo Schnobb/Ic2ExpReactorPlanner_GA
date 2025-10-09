@@ -84,21 +84,31 @@ public class ReactorGenome {
         double fuelSimilarityScore = calculateFuelLayoutSimilarity(genomeA, genomeB);
         double componentsLayoutSimilarityScore = calculateComponentsLayoutSimilarity(genomeA, genomeB);
 
-        return (fuelSimilarityScore * config.speciation.fuelLayoutWeight) + (componentsLayoutSimilarityScore * config.speciation.fuelLayoutWeight);
+        return (fuelSimilarityScore * config.speciation.fuelLayoutWeight) + (componentsLayoutSimilarityScore * config.speciation.componentsLayoutWeight);
     }
 
     private static double calculateFuelLayoutSimilarity(ReactorGenome genomeA, ReactorGenome genomeB) {
         assert genomeA.reactorLayout.length == genomeB.reactorLayout.length;
 
-        int matchingCells = 0;
-        int totalCells = genomeA.reactorLayout.length;
+        int intersection = 0; // where both have fuel
+        int union = 0; // where only one has fuel
 
         for (int i = 0; i < genomeA.reactorLayout.length; i++) {
-            if (genomeA.isFuelRodAt(i) && genomeB.isFuelRodAt(i))
-                matchingCells++;
+            boolean genomeAHasFuel = genomeA.isFuelRodAt(i);
+            boolean genomeBHasFuel = genomeB.isFuelRodAt(i);
+
+            if (genomeAHasFuel || genomeBHasFuel) {
+                union++;
+
+                if (genomeAHasFuel && genomeBHasFuel)
+                    intersection++;
+            }
         }
 
-        return (double) matchingCells / (double) totalCells;
+        if (union == 0 && intersection == 0)
+            return 1.0;
+
+        return union > 0 ? (double) intersection / (double) union : 0.0;
     }
 
     private static double calculateComponentsLayoutSimilarity(ReactorGenome genomeA, ReactorGenome genomeB) {
@@ -109,7 +119,7 @@ public class ReactorGenome {
         int totalCells = genomeA.reactorLayout.length;
 
         for (int i = 0; i < totalCells; i++) {
-            if(genomeA.isFuelRodAt(i) && genomeB.isFuelRodAt(i))
+            if (genomeA.isFuelRodAt(i) && genomeB.isFuelRodAt(i))
                 continue;
 
             relevantCells++;

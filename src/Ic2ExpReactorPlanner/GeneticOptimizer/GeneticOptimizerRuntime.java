@@ -1,7 +1,6 @@
 package Ic2ExpReactorPlanner.GeneticOptimizer;
 
 import Ic2ExpReactorPlanner.ComponentFactory;
-import Ic2ExpReactorPlanner.ReactorSimulator;
 import Ic2ExpReactorPlanner.components.FuelRod;
 import Ic2ExpReactorPlanner.components.ReactorItem;
 
@@ -85,10 +84,10 @@ public class GeneticOptimizerRuntime {
         for (EvolutionEngine.EvaluatedGenome candidate : sortedPopulation) {
             if (top10Species.size() >= 10) break;
 
-            boolean distinctSpecies = false;
+            boolean distinctSpecies = true;
             for (EvolutionEngine.EvaluatedGenome champion : top10Species) {
                 if (ReactorGenome.calculateSimilarity(config, champion.getGenome(), candidate.getGenome()) > config.speciation.speciesSimilarityThreshold) {
-                    distinctSpecies = true;
+                    distinctSpecies = false;
                     break;
                 }
             }
