@@ -11,7 +11,7 @@
 
     // When creating a new population for subsequent generations, the algorithm uses a tournament selection process.
     // It fills the generation by running a tournament selecting "tournamentSizeK" individuals randomly in the population,
-    // and grabbing the highest fitness one as parentA. It then does the same thing for parentB. It then adds a cross breed
+    // and grabbing the highest fitness one as parentA. It then does the same thing for parentB. It then adds a cross-breed
     // of parentA and parentB to the population of the next generation.
     "tournamentSizeK": 5,
 
@@ -35,13 +35,13 @@
 
     // Based on the DESIGN #5: URANIUM v2 reactor on the GTNH wiki. Expressed in EU/t per fuel rods. Note that this is
     // not the highest power reactor design, but the most efficient.
-    "metaFuelEfficiencyTarget": 800,
+    "metaFuelEfficiencyTarget": 600,
 
     // A broken component at the end of the simulation is a sign of an unstable reactor. Should be heavily penalized.
     "componentBrokenPenalty": 0.5,
 
     // Each HU of maxTemp decreases fitness score by heatPenaltyMultiplier
-    "heatPenaltyMultiplier": 1.0
+    "heatPenaltyMultiplier": 0.75
   },
   "mutation": {
     "refinement": {
