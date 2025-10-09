@@ -6,6 +6,7 @@ import Ic2ExpReactorPlanner.GeneticOptimizer.SeedFileLoader;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -28,7 +29,7 @@ public class SeedFileLoaderTest {
 
         // Test
         String currentDir = System.getProperty("user.dir");
-        ArrayList<ReactorGenome> actualGenomes = SeedFileLoader.LoadSeedFile(config, "preload_test.txt");
+        List<ReactorGenome> actualGenomes = SeedFileLoader.LoadSeedFile(config, "preload_test.txt");
 
         // Assert
         assertEquals("Loaded genomes and expected genomes are different.", expectedGenomes, actualGenomes);

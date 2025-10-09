@@ -32,6 +32,7 @@ public class GAConfig {
         public int maxGeneration;
         public int alphaCount;
         public int tournamentSizeK;
+        public double speciesSimilarityThreshold;
         public double lowDiversityThreshold;
         public double lowDiversityCullingRatio;
         public String seedFile;

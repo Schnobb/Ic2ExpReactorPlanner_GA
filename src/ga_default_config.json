@@ -2,21 +2,25 @@
   "evolution": {
     // The algorithm is biphasic, it runs for "phaseLengthGenerations" in exploratory mode with high mutation chances
     // and then switches to refinement mode with more conservative mutation rates.
-    "phaseLengthGenerations": 50,
-    "populationSize": 500,
-    "maxGeneration": 1000,
+    "phaseLengthGenerations": 5, // 100 overnight
+    "populationSize": 100, // 1000 overnight
+    "maxGeneration": 50, // 1000 overnight
 
     // Number of highest fitness individuals to keep intact per generation.
-    "alphaCount": 5,
+    "alphaCount": 1, // 3 overnight
 
     // When creating a new population for subsequent generations, the algorithm uses a tournament selection process.
     // It fills the generation by running a tournament selecting "tournamentSizeK" individuals randomly in the population,
     // and grabbing the highest fitness one as parentA. It then does the same thing for parentB. It then adds a cross-breed
     // of parentA and parentB to the population of the next generation.
-    "tournamentSizeK": 5,
+    "tournamentSizeK": 4, // 5 overnight
+
+    // When comparing genomes for diversity checks, this threshold will be used to tell if two genomes are considered
+    // the same species. Higher thresholds will trigger more "low diversity" injections and will.
+    "speciesSimilarityThreshold": 0.85,
 
     // Low diversity threshold. When reached a culling will occur to inject random designs.
-    "lowDiversityThreshold": 0.25,
+    "lowDiversityThreshold": 0.55,
 
     // How many individual will be culled during a low diversity culling. Expressed as a % of the population size.
     "lowDiversityCullingRatio": 0.4,

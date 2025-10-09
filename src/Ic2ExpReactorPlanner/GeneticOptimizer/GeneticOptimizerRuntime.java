@@ -1,6 +1,7 @@
 package Ic2ExpReactorPlanner.GeneticOptimizer;
 
 import Ic2ExpReactorPlanner.ComponentFactory;
+import Ic2ExpReactorPlanner.ReactorSimulator;
 import Ic2ExpReactorPlanner.components.FuelRod;
 import Ic2ExpReactorPlanner.components.ReactorItem;
 
@@ -10,6 +11,7 @@ import java.nio.file.Paths;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 
 public class GeneticOptimizerRuntime {
     public static void main(String[] args) {
@@ -47,24 +49,18 @@ public class GeneticOptimizerRuntime {
 
         // Load seed reactors if configured
         if (config.evolution.seedFile != null && !config.evolution.seedFile.isEmpty()) {
-            ArrayList<ReactorGenome> seedGenomes = SeedFileLoader.LoadSeedFile(config, config.evolution.seedFile);
+            List<ReactorGenome> seedGenomes = SeedFileLoader.LoadSeedFile(config, config.evolution.seedFile);
             evolutionEngine.preSeedGen0(seedGenomes);
         }
 
         // Run
-        ArrayList<EvolutionEngine.EvaluatedGenome> finalPopulation = evolutionEngine.run(true);
+        List<EvolutionEngine.EvaluatedGenome> finalPopulation = evolutionEngine.run(true);
 
         // Show the top 10 reactor designs
-        finalPopulation.sort(Comparator.comparingDouble(EvolutionEngine.EvaluatedGenome::getFitness).reversed());
-        ArrayList<EvolutionEngine.EvaluatedGenome> top10 = new ArrayList<>(10);
-
-        for (EvolutionEngine.EvaluatedGenome evaluatedGenome : finalPopulation) {
-            if (!alreadyInTop10(top10, evaluatedGenome))
-                top10.add(evaluatedGenome);
-        }
+        List<EvolutionEngine.EvaluatedGenome> top10 = getTop10Species(config, finalPopulation);
 
         Logger.log("");
-        Logger.log("Final top 10:");
+        Logger.log("Top 10 species:");
         for (int i = 0; i < Math.min(10, top10.size()); i++) {
             EvolutionEngine.EvaluatedGenome evaluatedGenome = top10.get(i);
 
@@ -76,7 +72,35 @@ public class GeneticOptimizerRuntime {
         }
     }
 
-    private static boolean alreadyInTop10(ArrayList<EvolutionEngine.EvaluatedGenome> top10, EvolutionEngine.EvaluatedGenome candidate) {
+    private static List<EvolutionEngine.EvaluatedGenome> getTop10Species(GAConfig config, List<EvolutionEngine.EvaluatedGenome> population) {
+        List<EvolutionEngine.EvaluatedGenome> top10Species = new ArrayList<>();
+
+        // Create a sorted copy of the population, the best fitness first
+        List<EvolutionEngine.EvaluatedGenome> sortedPopulation = new ArrayList<>(population);
+        sortedPopulation.sort(Comparator.comparing(EvolutionEngine.EvaluatedGenome::getFitness).reversed());
+
+        // Always add the alpha
+        top10Species.add(sortedPopulation.get(0));
+
+        for (EvolutionEngine.EvaluatedGenome candidate : sortedPopulation) {
+            if (top10Species.size() >= 10) break;
+
+            boolean distinctSpecies = false;
+            for (EvolutionEngine.EvaluatedGenome champion : top10Species) {
+                if (ReactorGenome.calculateSimilarity(champion.getGenome(), candidate.getGenome()) > config.evolution.speciesSimilarityThreshold) {
+                    distinctSpecies = true;
+                    break;
+                }
+            }
+
+            if (distinctSpecies)
+                top10Species.add(candidate);
+        }
+
+        return top10Species;
+    }
+
+    private static boolean alreadyInTop10(List<EvolutionEngine.EvaluatedGenome> top10, EvolutionEngine.EvaluatedGenome candidate) {
         for (EvolutionEngine.EvaluatedGenome evaluatedGenome : top10) {
             if (candidate.getGenome().equals(evaluatedGenome.getGenome()))
                 return true;

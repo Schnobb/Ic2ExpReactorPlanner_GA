@@ -5,6 +5,7 @@
     "maxGeneration": 10,
     "alphaCount": 1,
     "tournamentSizeK": 3,
+    "speciesSimilarityThreshold": 0.85,
     "lowDiversityThreshold": 0.25,
     "lowDiversityCullingRatio": 0.4,
     "seedFile": null

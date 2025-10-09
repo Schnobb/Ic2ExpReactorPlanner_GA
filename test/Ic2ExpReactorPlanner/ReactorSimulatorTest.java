@@ -5,8 +5,8 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class ReactorSimulatorTest {
-    private final String STANDARD_STABLE_REACTOR_ERP_CODE = "erp=AN0nc6OU0EZ6odjKIHf5LQtII1WK0d2I46Jsac29tPkOMkwUWLvXEmuRd6ZfDXo5b1GSvAM=";
-    private final String STANDARD_EXPLODY_REACTOR_ERP_CODE = "erp=AN0nc6OU0EZ6odjKIHf5LQtII1WK0d2I46Jsac29tENct0TQ5x2AuOHMgYsd4XMbSlGSvAM=";
+    private static final String STANDARD_STABLE_REACTOR_ERP_CODE = "erp=AN0nc6OU0EZ6odjKIHf5LQtII1WK0d2I46Jsac29tPkOMkwUWLvXEmuRd6ZfDXo5b1GSvAM=";
+    private static final String STANDARD_EXPLODY_REACTOR_ERP_CODE = "erp=AN0nc6OU0EZ6odjKIHf5LQtII1WK0d2I46Jsac29tENct0TQ5x2AuOHMgYsd4XMbSlGSvAM=";
 
     // A small delta for comparing floating-point numbers to account for minor inaccuracies.
     private final double DELTA = 0.0001;

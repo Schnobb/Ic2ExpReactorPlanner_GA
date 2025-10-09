@@ -4,14 +4,15 @@ import Ic2ExpReactorPlanner.Reactor;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class SeedFileLoader {
     private static final String COMMENT_PATTERN = "\\h*(//|#).*$";
 
-    public static ArrayList<ReactorGenome> LoadSeedFile(GAConfig config, String path) {
-        ArrayList<ReactorGenome> seedList = new ArrayList<>();
+    public static List<ReactorGenome> LoadSeedFile(GAConfig config, String path) {
+        List<ReactorGenome> seedList = new ArrayList<>();
 
         String cleanedContent;
         Pattern commentPattern = Pattern.compile(COMMENT_PATTERN);
@@ -28,10 +29,12 @@ public class SeedFileLoader {
             return null;
         }
 
-        for (String code : cleanedContent.split("\n")) {
-            Reactor newReactor = new Reactor();
-            newReactor.setCode(code);
-            seedList.add(ReactorGenome.fromReactor(config, newReactor));
+        if (!cleanedContent.isEmpty()) {
+            for (String code : cleanedContent.split("\n")) {
+                Reactor newReactor = new Reactor();
+                newReactor.setCode(code);
+                seedList.add(ReactorGenome.fromReactor(config, newReactor));
+            }
         }
 
         return seedList;

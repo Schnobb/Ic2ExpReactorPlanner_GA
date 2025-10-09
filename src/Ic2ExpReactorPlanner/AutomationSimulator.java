@@ -47,6 +47,8 @@ public class AutomationSimulator extends SwingWorker<Void, String> {
 
     @Override
     protected Void doInBackground() {
+        ReactorSimulator simulator = new ReactorSimulator();
+
         PrintWriter csvOut = null;
         if (csvFile != null) {
             try {
@@ -55,8 +57,6 @@ public class AutomationSimulator extends SwingWorker<Void, String> {
                 publish(getI18n("Simulation.CSVOpenFailure"));
             }
         }
-
-        ReactorSimulator simulator = new ReactorSimulator();
 
         try {
             if (csvOut != null) {

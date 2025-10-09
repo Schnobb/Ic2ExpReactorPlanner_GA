@@ -3,14 +3,14 @@ package Ic2ExpReactorPlanner.GeneticOptimizer;
 import Ic2ExpReactorPlanner.*;
 import Ic2ExpReactorPlanner.components.ReactorItem;
 
-import java.lang.reflect.Array;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 public class EvolutionEngine {
     private final GAConfig config;
     private final Random random;
-    private final ArrayList<ReactorGenome> startingPopulation;
+    private final List<ReactorGenome> startingPopulation;
 
     private final ExecutorService executor;
     private final ThreadLocal<ReactorSimulator> simulatorThreadLocal;
@@ -29,16 +29,16 @@ public class EvolutionEngine {
         this.simulatorThreadLocal = ThreadLocal.withInitial(ReactorSimulator::new);
     }
 
-    public void preSeedGen0(ArrayList<ReactorGenome> startingPopulation) {
+    public void preSeedGen0(List<ReactorGenome> startingPopulation) {
         this.startingPopulation.addAll(startingPopulation);
     }
 
-    public ArrayList<EvaluatedGenome> run() {
+    public List<EvaluatedGenome> run() {
         return run(false);
     }
 
-    public ArrayList<EvaluatedGenome> run(boolean verbose) {
-        ArrayList<EvaluatedGenome> evaluatedPopulation = null;
+    public List<EvaluatedGenome> run(boolean verbose) {
+        List<EvaluatedGenome> evaluatedPopulation = null;
 
         double overallBestFitness = -1;
         int generation = 0;
@@ -49,7 +49,7 @@ public class EvolutionEngine {
         printVerbose(verbose, "Evolution settings: %s", this.config.evolution.toString());
         printVerbose(verbose, "Starting evolution...");
 
-        ArrayList<ReactorGenome> population = initializePopulation(this.config, this.startingPopulation, this.random);
+        List<ReactorGenome> population = initializePopulation(this.config, this.random, this.startingPopulation);
         printVerbose(verbose, "Initial population of %d candidates created. Seeded with %d pre-configured reactors.", population.size(), this.startingPopulation.size());
 
         while (generation < this.config.evolution.maxGeneration) {
@@ -86,7 +86,7 @@ public class EvolutionEngine {
                 if (evaluatedGenome.getFitness() > alpha.getFitness()) alpha = evaluatedGenome;
             }
 
-            Logger.log(Logger.LogLevel.DEBUG, "Stable designs in generation %d: %d/%d (%.1f%%)", generation, stableCount, evaluatedPopulation.size(), 100.0 * stableCount / evaluatedPopulation.size());
+            Logger.log(Logger.LogLevel.DEBUG, "Valid designs in generation %d: %d/%d (%.1f%%)", generation, stableCount, evaluatedPopulation.size(), 100.0 * stableCount / evaluatedPopulation.size());
 
             bestFitnessInGeneration = alpha.getFitness();
 
@@ -94,98 +94,10 @@ public class EvolutionEngine {
                 overallBestFitness = bestFitnessInGeneration;
             }
 
-            Set<Integer> uniqueDesigns = new HashSet<>();
-            for (EvaluatedGenome genome : evaluatedPopulation) {
-                uniqueDesigns.add(genome.getGenome().hashCode());
-            }
-
-            double diversityRatio = (double) uniqueDesigns.size() / (double) evaluatedPopulation.size();
-            Logger.log(Logger.LogLevel.DEBUG, "Diversity in generation %d: %d unique genomes (%.2f%%)", generation, uniqueDesigns.size(), diversityRatio * 100);
-
-            int randomGenomesInjectCount = 0;
-            if (diversityRatio < this.config.evolution.lowDiversityThreshold) {
-                randomGenomesInjectCount = (int) Math.floor((double) evaluatedPopulation.size() * this.config.evolution.lowDiversityCullingRatio);
-                Logger.log(Logger.LogLevel.DEBUG, "LOW DIVERSITY IN GENERATION %d. Injecting %d random designs into next generation", generation, randomGenomesInjectCount);
-            }
-
             // Don't need a new population for the last generation
             if (generation < this.config.evolution.maxGeneration - 1) {
-                // TODO: refactor all this into a breedNextGeneration() function
-
-                // Create the new generation
-                ArrayList<ReactorGenome> newPopulation = new ArrayList<>();
-
-                // Find the alphas (if more than one) and add them to newPopulation
-                // TODO: refactor alpha handling stuff
-                if (this.config.evolution.alphaCount == 1) {
-                    newPopulation.add(alpha.getGenome().copy());
-                } else {
-                    evaluatedPopulation.sort(Comparator.comparingDouble(EvaluatedGenome::getFitness).reversed());
-                    for (int i = 0; i < config.evolution.alphaCount; i++) {
-                        newPopulation.add(evaluatedPopulation.get(i).getGenome().copy());
-                    }
-                }
-
-                // Fill the rest of the population with the tournament selection breeding
-                // TODO: refactor all this new population stuff
-                int tournamentCount = this.config.evolution.populationSize - newPopulation.size() - randomGenomesInjectCount;
-                ReactorGenome.MutationStatTracker statTracker = new ReactorGenome.MutationStatTracker();
-
-                // TODO: create a selectParentViaTournament() function and call it once for each new parent
-                for (int i = 0; i < tournamentCount; i++) {
-                    ArrayList<EvaluatedGenome> tournamentSelection = new ArrayList<>();
-                    // tournament selection process for parentA
-                    for (int k = 0; k < this.config.evolution.tournamentSizeK; k++) {
-                        tournamentSelection.add(evaluatedPopulation.get(this.random.nextInt(evaluatedPopulation.size())));
-                    }
-
-                    assert !tournamentSelection.isEmpty() : "Tournament competitor list cannot be empty.";
-
-                    // grab tournament A winner
-                    EvaluatedGenome parentA = tournamentSelection.get(0);
-                    for (EvaluatedGenome candidate : tournamentSelection) {
-                        if (candidate.getFitness() > parentA.getFitness()) {
-                            parentA = candidate;
-                        }
-                    }
-
-                    tournamentSelection = new ArrayList<>();
-                    // tournament selection process for parentB
-                    for (int k = 0; k < this.config.evolution.tournamentSizeK; k++) {
-                        tournamentSelection.add(evaluatedPopulation.get(this.random.nextInt(evaluatedPopulation.size())));
-                    }
-
-                    assert !tournamentSelection.isEmpty() : "Tournament competitor list cannot be empty.";
-
-                    // grab tournament B winner
-                    EvaluatedGenome parentB = tournamentSelection.get(0);
-                    for (EvaluatedGenome candidate : tournamentSelection) {
-                        if (candidate.getFitness() > parentB.getFitness()) {
-                            parentB = candidate;
-                        }
-                    }
-
-                    // breeding phase
-                    ReactorGenome childGenome = ReactorGenome.crossBreed(this.config, parentA.getGenome(), parentB.getGenome(), this.random);
-
-                    // mutation phase
-                    GAConfig.PhaseProbabilities mutationProbabilities = exploratoryPhase ? this.config.mutation.exploration : this.config.mutation.refinement;
-                    childGenome.tryMutation(this.config, mutationProbabilities, this.random, statTracker);
-
-                    newPopulation.add(childGenome);
-                }
-
-                // Inject random genomes into new population to spike diversity if diversity is too low
-                for (int i = 0; i < randomGenomesInjectCount; i++) {
-                    newPopulation.add(ReactorGenome.randomGenome(this.config, this.random));
-                }
-
-                Logger.log(Logger.LogLevel.DEBUG, "Mutations count in generation %d: " + statTracker, generation);
-
-                // replace population with newPopulation
-                population = newPopulation;
+                population = breedNextGeneration(config, random, alpha, evaluatedPopulation, exploratoryPhase, generation);
             }
-
 
             long generationEndTime = System.nanoTime();
             double generationElapsedTimeMS = (generationEndTime - generationStartTime) / 1e6;
@@ -210,17 +122,124 @@ public class EvolutionEngine {
             if (!executor.awaitTermination(60, TimeUnit.SECONDS))
                 Logger.log(Logger.LogLevel.WARNING, "executor.awaitTermination timed out. Is there a threading issue?");
         } catch (Exception e) {
+            Logger.log(Logger.LogLevel.WARNING, "executor.awaitTermination had to be interrupted. Is there a threading issue? [" + e.getCause() + "]");
             Thread.currentThread().interrupt();
         }
 
         return evaluatedPopulation;
     }
 
-    private ArrayList<EvaluatedGenome> simulatePopulation(ArrayList<ReactorGenome> population, ThreadLocal<ReactorSimulator> simulators, ExecutorService executor) {
-        ArrayList<EvaluatedGenome> evaluatedGenomes = new ArrayList<>();
+    private List<ReactorGenome> breedNextGeneration(GAConfig config, Random random, EvaluatedGenome alpha, List<EvaluatedGenome> evaluatedPopulation, boolean exploratoryPhase, int generation) {
+        List<ReactorGenome> population = evaluatedPopulation.stream().
+                map(EvaluatedGenome::getGenome)
+                .collect(Collectors.toList());
+
+        double populationDiversityMetric = calculateSpeciesDiversity(config, population);
+        Logger.log(Logger.LogLevel.DEBUG, "Diversity in generation %d: %.2f%% individual species", generation, populationDiversityMetric * 100);
+
+        int randomGenomesInjectCount = 0;
+        if (populationDiversityMetric < config.evolution.lowDiversityThreshold) {
+            randomGenomesInjectCount = (int) Math.floor((double) evaluatedPopulation.size() * config.evolution.lowDiversityCullingRatio);
+            Logger.log(Logger.LogLevel.DEBUG, "LOW DIVERSITY IN GENERATION %d. Injecting %d random designs into next generation", generation, randomGenomesInjectCount);
+        }
+
+        // Create the new generation
+        List<ReactorGenome> newPopulation = new ArrayList<>();
+
+        // Find the alphas (if more than one) and add them to newPopulation
+        // TODO: refactor alpha handling stuff
+        if (config.evolution.alphaCount == 1) {
+            newPopulation.add(alpha.getGenome().copy());
+        } else {
+            evaluatedPopulation.sort(Comparator.comparingDouble(EvaluatedGenome::getFitness).reversed());
+            for (int i = 0; i < config.evolution.alphaCount; i++) {
+                newPopulation.add(evaluatedPopulation.get(i).getGenome().copy());
+            }
+        }
+
+        // Fill the rest of the population with the tournament selection breeding
+        // TODO: refactor all this new population stuff
+        int tournamentCount = config.evolution.populationSize - newPopulation.size() - randomGenomesInjectCount;
+        ReactorGenome.MutationStatTracker statTracker = new ReactorGenome.MutationStatTracker();
+
+        // TODO: create a selectParentViaTournament() function and call it once for each new parent
+        for (int i = 0; i < tournamentCount; i++) {
+            List<EvaluatedGenome> tournamentSelection = new ArrayList<>();
+            // tournament selection process for parentA
+            for (int k = 0; k < config.evolution.tournamentSizeK; k++) {
+                tournamentSelection.add(evaluatedPopulation.get(random.nextInt(evaluatedPopulation.size())));
+            }
+
+            assert !tournamentSelection.isEmpty() : "Tournament competitor list cannot be empty.";
+
+            // grab tournament A winner
+            EvaluatedGenome parentA = tournamentSelection.get(0);
+            for (EvaluatedGenome candidate : tournamentSelection) {
+                if (candidate.getFitness() > parentA.getFitness()) {
+                    parentA = candidate;
+                }
+            }
+
+            tournamentSelection = new ArrayList<>();
+            // tournament selection process for parentB
+            for (int k = 0; k < config.evolution.tournamentSizeK; k++) {
+                tournamentSelection.add(evaluatedPopulation.get(random.nextInt(evaluatedPopulation.size())));
+            }
+
+            assert !tournamentSelection.isEmpty() : "Tournament competitor list cannot be empty.";
+
+            // grab tournament B winner
+            EvaluatedGenome parentB = tournamentSelection.get(0);
+            for (EvaluatedGenome candidate : tournamentSelection) {
+                if (candidate.getFitness() > parentB.getFitness()) {
+                    parentB = candidate;
+                }
+            }
+
+            // breeding phase
+            ReactorGenome childGenome = ReactorGenome.crossBreed(config, parentA.getGenome(), parentB.getGenome(), random);
+
+            // mutation phase
+            GAConfig.PhaseProbabilities mutationProbabilities = exploratoryPhase ? config.mutation.exploration : config.mutation.refinement;
+            childGenome.tryMutation(config, mutationProbabilities, random, statTracker);
+
+            newPopulation.add(childGenome);
+        }
+
+        // Inject random genomes into new population to spike diversity if diversity is too low
+        for (int i = 0; i < randomGenomesInjectCount; i++) {
+            newPopulation.add(ReactorGenome.randomGenome(config, random));
+        }
+
+        Logger.log(Logger.LogLevel.DEBUG, "Mutations count in generation %d: " + statTracker, generation);
+        return newPopulation;
+    }
+
+    private double calculateSpeciesDiversity(GAConfig config, List<ReactorGenome> population) {
+        if (population.isEmpty()) return 0.0;
+
+        List<ReactorGenome> speciesRepresentatives = new ArrayList<>();
+        for (ReactorGenome individual : population) {
+            boolean newSpecies = true;
+            for (ReactorGenome representative : speciesRepresentatives) {
+                if (ReactorGenome.calculateSimilarity(individual, representative) > config.evolution.speciesSimilarityThreshold) {
+                    newSpecies = false;
+                    break;
+                }
+            }
+
+            if (newSpecies)
+                speciesRepresentatives.add(individual);
+        }
+
+        return (double) speciesRepresentatives.size() / (double) population.size();
+    }
+
+    private List<EvaluatedGenome> simulatePopulation(List<ReactorGenome> population, ThreadLocal<ReactorSimulator> simulators, ExecutorService executor) {
+        List<EvaluatedGenome> evaluatedGenomes = new ArrayList<>();
 
         // thread creation
-        ArrayList<Future<SimulationData>> fitnessFutures = new ArrayList<>(population.size());
+        List<Future<SimulationData>> fitnessFutures = new ArrayList<>(population.size());
         for (ReactorGenome currentGenome : population) {
             final ReactorGenome genomeForThread = currentGenome.copy();
 
@@ -252,8 +271,8 @@ public class EvolutionEngine {
         return evaluatedGenomes;
     }
 
-    private ArrayList<ReactorGenome> initializePopulation(GAConfig config, ArrayList<ReactorGenome> seedPopulation, Random random) {
-        ArrayList<ReactorGenome> population = new ArrayList<>();
+    private List<ReactorGenome> initializePopulation(GAConfig config, Random random, List<ReactorGenome> seedPopulation) {
+        List<ReactorGenome> population = new ArrayList<>();
 
         // fill with seedPopulation to start
         for (int i = 0; i < Math.min(seedPopulation.size(), config.evolution.populationSize); i++) {

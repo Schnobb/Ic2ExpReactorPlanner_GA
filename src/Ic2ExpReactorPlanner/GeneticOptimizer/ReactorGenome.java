@@ -76,6 +76,14 @@ public class ReactorGenome {
         return genome;
     }
 
+    public static double calculateSimilarity(ReactorGenome genomeA, ReactorGenome genomeB) {
+        // TODO: implement a better way of comparing genome, returning a weighted score.
+        //  Fuel type: if different then the designs are completely different (are they really? yes for now)
+        //  Fuel layout: second most important distinguisher. The more similar the fuel layout, the more similar the fuel reactor
+        //  Components layout: least important factor, small variations in component layout should not matter in this
+        return genomeA.equals(genomeB) ? 1.0 : 0.0;
+    }
+
     public String getERPCode() {
         Reactor reactor = toReactor();
         return reactor.getCode();

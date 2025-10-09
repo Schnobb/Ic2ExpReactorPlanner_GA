@@ -8,7 +8,7 @@ package Ic2ExpReactorPlanner;
 import java.util.ResourceBundle;
 
 /**
- * Utility class to handle handle access to the planner's resource bundle.
+ * Utility class to handle access to the planner's resource bundle.
  * Methods may be static-imported, and hopefully this will make the code more
  * concise, but not to the point of obfuscation.
  * @author Brian McCloud
