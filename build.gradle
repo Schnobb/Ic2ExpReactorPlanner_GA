@@ -1,16 +1,13 @@
 apply plugin: 'java'
 apply plugin: 'application'
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
-
-if (!hasProperty('mainClass')) {
-    ext.mainClass = 'Ic2ExpReactorPlanner.ReactorPlannerFrame'
+application {
+    mainClass = 'Ic2ExpReactorPlanner.ReactorPlannerFrame'
 }
-mainClassName = ext.mainClass
 
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
+    options.release = 25
 }
 
 sourceSets {
@@ -40,7 +37,7 @@ test {
 
 jar {
     manifest {
-        attributes 'Main-Class': mainClassName
+        attributes 'Main-Class': 'Ic2ExpReactorPlanner.ReactorPlannerFrame'
     }
 }
 
