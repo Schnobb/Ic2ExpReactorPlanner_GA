@@ -1,6 +1,7 @@
 package Ic2ExpReactorPlanner.GeneticOptimizer;
 
 import Ic2ExpReactorPlanner.ComponentFactory;
+import Ic2ExpReactorPlanner.IComponentFactory;
 import Ic2ExpReactorPlanner.Reactor;
 import Ic2ExpReactorPlanner.components.FuelRod;
 import Ic2ExpReactorPlanner.components.ReactorItem;
@@ -23,8 +24,11 @@ public class ReactorGenome {
     // Config stuff
     private final GAConfig config;
 
-    public ReactorGenome(GAConfig config) {
+    private final IComponentFactory componentFactory;
+
+    public ReactorGenome(GAConfig config, IComponentFactory componentFactory) {
         this.config = config;
+        this.componentFactory = componentFactory;
 
         this.fuelType = -1;
         this.reactorLayout = new int[this.config.reactor.rowCount * this.config.reactor.colCount];
@@ -43,8 +47,8 @@ public class ReactorGenome {
         this.fuelType = type;
     }
 
-    public static ReactorGenome randomGenome(GAConfig config, Random random) {
-        ReactorGenome genome = new ReactorGenome(config);
+    public static ReactorGenome randomGenome(GAConfig config, Random random, IComponentFactory componentFactory) {
+        ReactorGenome genome = new ReactorGenome(config, componentFactory);
 
         genome.fuelType = config.fuels.valid[random.nextInt(config.fuels.valid.length)];
         for (int i = 0; i < genome.reactorLayout.length; i++)
@@ -59,8 +63,8 @@ public class ReactorGenome {
         return b64Encoder.encodeToString(buffer.getBytes(StandardCharsets.UTF_8));
     }
 
-    public static ReactorGenome deserialize(GAConfig config, String serializedGenome) {
-        ReactorGenome genome = new ReactorGenome(config);
+    public static ReactorGenome deserialize(GAConfig config, String serializedGenome, IComponentFactory componentFactory) {
+        ReactorGenome genome = new ReactorGenome(config, componentFactory);
 
         Base64.Decoder urlDecoder = Base64.getUrlDecoder();
         String buffer = new String(urlDecoder.decode(serializedGenome), StandardCharsets.UTF_8);
@@ -135,25 +139,25 @@ public class ReactorGenome {
     }
 
     public String getERPCode() {
-        Reactor reactor = toReactor();
+        var reactor = toReactor();
         return reactor.getCode();
     }
 
-    public static ReactorGenome fromReactor(GAConfig config, Reactor reactor) {
-        ReactorGenome genome = new ReactorGenome(config);
+    public static ReactorGenome fromReactor(GAConfig config, Reactor reactor, IComponentFactory componentFactory) {
+        ReactorGenome genome = new ReactorGenome(config, componentFactory);
 
         int fuelType = -1;
         int i = 0;
         for (int y = 0; y < config.reactor.rowCount; y++) {
             for (int x = 0; x < config.reactor.colCount; x++) {
-                ReactorItem component = reactor.getComponentAt(y, x);
+                var component = reactor.getComponentAt(y, x);
                 int componentId = -1;
 
                 if (component != null)
-                    componentId = component.id;
+                    componentId = component.getId();
 
-                ReactorItem defaultComponent = ComponentFactory.getDefaultComponent(componentId);
-                if (defaultComponent instanceof FuelRod) {
+                var defaultComponent = componentFactory.getDefaultComponent(componentId);
+                if (defaultComponent instanceof FuelRod || defaultComponent instanceof Ic2ExpReactorPlanner.old.components.FuelRod) {
                     if (fuelType < 0) {
                         fuelType = componentId;
                         genome.fuelType = fuelType;
@@ -171,8 +175,8 @@ public class ReactorGenome {
         return genome;
     }
 
-    public static ReactorGenome crossBreed(GAConfig config, ReactorGenome parentA, ReactorGenome parentB, Random random) {
-        ReactorGenome newGenome = new ReactorGenome(config);
+    public static ReactorGenome crossBreed(GAConfig config, ReactorGenome parentA, ReactorGenome parentB, Random random, IComponentFactory componentFactory) {
+        ReactorGenome newGenome = new ReactorGenome(config, componentFactory);
 
         newGenome.fuelType = random.nextDouble() < 0.5 ? parentA.fuelType : parentB.fuelType;
 
@@ -195,7 +199,7 @@ public class ReactorGenome {
     }
 
     public Reactor toReactor() {
-        Reactor reactor = new Reactor();
+        var reactor = new Reactor(this.componentFactory);
 
         int i = 0;
         for (int y = 0; y < this.config.reactor.rowCount; y++) {
@@ -211,7 +215,7 @@ public class ReactorGenome {
                     componentId = this.fuelType;
                 }
 
-                ReactorItem component = ComponentFactory.createComponent(componentId);
+                var component = componentFactory.createComponent(componentId);
                 reactor.setComponentAt(y, x, component);
 
                 i++;
@@ -263,7 +267,7 @@ public class ReactorGenome {
     }
 
     public ReactorGenome copy() {
-        ReactorGenome newGenome = new ReactorGenome(this.config);
+        ReactorGenome newGenome = new ReactorGenome(this.config, this.componentFactory);
         newGenome.fuelType = this.fuelType;
         System.arraycopy(this.reactorLayout, 0, newGenome.reactorLayout, 0, this.reactorLayout.length);
 

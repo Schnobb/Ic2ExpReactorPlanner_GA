@@ -8,6 +8,7 @@ package Ic2ExpReactorPlanner;
 import static Ic2ExpReactorPlanner.BundleHelper.formatI18n;
 import static Ic2ExpReactorPlanner.BundleHelper.getI18n;
 import Ic2ExpReactorPlanner.components.FuelRod;
+import Ic2ExpReactorPlanner.components.IReactorItem;
 import Ic2ExpReactorPlanner.components.ReactorItem;
 import Ic2ExpReactorPlanner.components.Reflector;
 import java.awt.Color;
@@ -58,10 +59,12 @@ import javax.swing.event.DocumentListener;
  */
 public class ReactorPlannerFrame extends javax.swing.JFrame {
 
+    private static IComponentFactory componentFactory = Ic2ExpReactorPlanner.old.ComponentFactory.getInstance();
+
     // use command line -PerpVersion=(whatever) when building to set actual version.
     private static final String VERSION = "@VERSION@";
     
-    private final Reactor reactor = new Reactor();
+    private final Reactor reactor = new Reactor(componentFactory);
     
     private final JButton[][] reactorButtons = new JButton[6][9];
     
@@ -78,7 +81,7 @@ public class ReactorPlannerFrame extends javax.swing.JFrame {
     
     private final JFileChooser textureChooser = new JFileChooser();
     
-    private final ReactorItem[] paletteComponents = new ReactorItem[ComponentFactory.getComponentCount()];
+    private final IReactorItem[] paletteComponents = new ReactorItem[componentFactory.getComponentCount()];
     
     private int paletteComponentId = 0;
     
@@ -125,11 +128,11 @@ public class ReactorPlannerFrame extends javax.swing.JFrame {
                         placingLabel.setText(getI18n("UI.ComponentPlacingDefault"));
                         paletteComponentId = 0;
                     } else if (button.getActionCommand() != null) {
-                        ReactorItem tempComponent = ComponentFactory.getDefaultComponent(button.getActionCommand());
+                        var tempComponent = componentFactory.getDefaultComponent(button.getActionCommand());
                         if (tempComponent != null) {
-                            paletteComponentId = tempComponent.id;
+                            paletteComponentId = tempComponent.getId();
                             if (paletteComponents[paletteComponentId] == null) {
-                                paletteComponents[paletteComponentId] = ComponentFactory.createComponent(paletteComponentId);
+                                paletteComponents[paletteComponentId] = componentFactory.createComponent(paletteComponentId);
                             }
                             placingLabel.setText(formatI18n("UI.ComponentPlacingSpecific",
                                     paletteComponents[paletteComponentId].toString()));
@@ -161,7 +164,7 @@ public class ReactorPlannerFrame extends javax.swing.JFrame {
 
                     @Override
                     public void actionPerformed(final ActionEvent e) {
-                        final ReactorItem component = reactor.getComponentAt(finalRow, finalCol);
+                        final var component = reactor.getComponentAt(finalRow, finalCol);
                         selectedRow = finalRow;
                         selectedColumn = finalCol;
                         if (component == null) {
@@ -188,11 +191,11 @@ public class ReactorPlannerFrame extends javax.swing.JFrame {
                     @Override
                     public void actionPerformed(final ActionEvent e) {
                         if (simulatedReactor != null) {
-                            final ReactorItem component = simulatedReactor.getComponentAt(finalRow, finalCol);
+                            final var component = simulatedReactor.getComponentAt(finalRow, finalCol);
                             if (component == null) {
                                 componentArea.setText(formatI18n("UI.NoComponentLastSimRowCol", finalRow, finalCol));
                             } else {
-                                componentArea.setText(formatI18n("UI.ComponentInfoLastSimRowCol", component.toString(), finalRow, finalCol, component.info));
+                                componentArea.setText(formatI18n("UI.ComponentInfoLastSimRowCol", component.toString(), finalRow, finalCol, component.getInfo()));
                             }
                         } else {
                             componentArea.setText(getI18n("UI.NoSimulationRun"));
@@ -213,11 +216,11 @@ public class ReactorPlannerFrame extends javax.swing.JFrame {
                     @Override
                     public void actionPerformed(ActionEvent e) {
                         if ((e.getModifiers() & ActionEvent.ALT_MASK) != 0) {
-                            ReactorItem component = reactor.getComponentAt(finalRow, finalCol);
+                            var component = reactor.getComponentAt(finalRow, finalCol);
                             if (component != null) {
-                                paletteComponentId = component.id;
+                                paletteComponentId = component.getId();
                                 if (paletteComponents[paletteComponentId] == null) {
-                                    paletteComponents[paletteComponentId] = ComponentFactory.createComponent(paletteComponentId);
+                                    paletteComponents[paletteComponentId] = componentFactory.createComponent(paletteComponentId);
                                 }
                                 paletteComponents[paletteComponentId].setInitialHeat(component.getInitialHeat());
                                 paletteComponents[paletteComponentId].setAutomationThreshold(component.getAutomationThreshold());
@@ -225,17 +228,17 @@ public class ReactorPlannerFrame extends javax.swing.JFrame {
                                 Enumeration<AbstractButton> buttons = componentsGroup.getElements();
                                 while (buttons.hasMoreElements()) {
                                     AbstractButton button = buttons.nextElement();
-                                    if (component.baseName.equals(button.getActionCommand())) {
+                                    if (component.getBaseName().equals(button.getActionCommand())) {
                                         button.doClick();
                                     }
                                 }
                             }
                             return;
                         }
-                        ReactorItem componentToPlace = null;
+                        IReactorItem componentToPlace = null;
                         final ButtonModel selection = componentsGroup.getSelection();
                         if (selection != null) {
-                            componentToPlace = ComponentFactory.createComponent(selection.getActionCommand());
+                            componentToPlace = componentFactory.createComponent(selection.getActionCommand());
                             if (componentToPlace != null) {
                                 componentToPlace.setInitialHeat(((Number)componentHeatSpinner.getValue()).intValue());
                                 componentToPlace.setAutomationThreshold(((Number)placingThresholdSpinner.getValue()).intValue());
@@ -250,8 +253,8 @@ public class ReactorPlannerFrame extends javax.swing.JFrame {
                         heatSpinnerModel.setValue(Math.min(((Number)heatSpinnerModel.getValue()).intValue(), reactor.getMaxHeat() - 1));
                         temperatureEffectsLabel.setText(formatI18n("UI.TemperatureEffectsSpecific", (int) (reactor.getMaxHeat() * 0.4), (int) (reactor.getMaxHeat() * 0.5), (int) (reactor.getMaxHeat() * 0.7), (int) (reactor.getMaxHeat() * 0.85), (int) (reactor.getMaxHeat() * 1.0)));
                         int buttonSize = Math.min(reactorButtons[finalRow][finalCol].getWidth(), reactorButtons[finalRow][finalCol].getHeight());
-                        if (buttonSize > 2 && componentToPlace != null && componentToPlace.image != null) {
-                            reactorButtons[finalRow][finalCol].setIcon(new ImageIcon(componentToPlace.image.getScaledInstance(buttonSize * 8 / 10, buttonSize * 8 / 10, Image.SCALE_FAST)));
+                        if (buttonSize > 2 && componentToPlace != null && componentToPlace.getImage() != null) {
+                            reactorButtons[finalRow][finalCol].setIcon(new ImageIcon(componentToPlace.getImage().getScaledInstance(buttonSize * 8 / 10, buttonSize * 8 / 10, Image.SCALE_FAST)));
                             reactorButtons[finalRow][finalCol].setToolTipText(componentToPlace.toString());
                             reactorButtons[finalRow][finalCol].setBackground(Color.LIGHT_GRAY);
                         } else {
@@ -288,11 +291,11 @@ public class ReactorPlannerFrame extends javax.swing.JFrame {
                             updateCodeField();
                             lockCode = false;
                         } else if (e.getButton() == MouseEvent.BUTTON2) {
-                            ReactorItem component = reactor.getComponentAt(finalRow, finalCol);
+                            var component = reactor.getComponentAt(finalRow, finalCol);
                             if (component != null) {
-                                paletteComponentId = component.id;
+                                paletteComponentId = component.getId();
                                 if (paletteComponents[paletteComponentId] == null) {
-                                    paletteComponents[paletteComponentId] = ComponentFactory.createComponent(paletteComponentId);
+                                    paletteComponents[paletteComponentId] = componentFactory.createComponent(paletteComponentId);
                                 }
                                 paletteComponents[paletteComponentId].setInitialHeat(component.getInitialHeat());
                                 paletteComponents[paletteComponentId].setAutomationThreshold(component.getAutomationThreshold());
@@ -300,7 +303,7 @@ public class ReactorPlannerFrame extends javax.swing.JFrame {
                                 Enumeration<AbstractButton> buttons = componentsGroup.getElements();
                                 while (buttons.hasMoreElements()) {
                                     AbstractButton button = buttons.nextElement();
-                                    if (component.baseName.equals(button.getActionCommand())) {
+                                    if (component.getBaseName().equals(button.getActionCommand())) {
                                         button.doClick();
                                     }
                                 }
@@ -1753,9 +1756,9 @@ public class ReactorPlannerFrame extends javax.swing.JFrame {
             AbstractButton button = elements.nextElement();
             int buttonSize = Math.min(button.getWidth(), button.getHeight());
             if (buttonSize > 2) {
-                final ReactorItem component = ComponentFactory.getDefaultComponent(button.getActionCommand());
-                if (component != null && component.image != null) {
-                    button.setIcon(new ImageIcon(component.image.getScaledInstance(buttonSize * 8 / 10, buttonSize * 8 / 10, Image.SCALE_FAST)));
+                final var component = componentFactory.getDefaultComponent(button.getActionCommand());
+                if (component != null && component.getImage() != null) {
+                    button.setIcon(new ImageIcon(component.getImage().getScaledInstance(buttonSize * 8 / 10, buttonSize * 8 / 10, Image.SCALE_FAST)));
                 } else {
                     button.setIcon(null);
                 }
@@ -1765,9 +1768,9 @@ public class ReactorPlannerFrame extends javax.swing.JFrame {
             for (int col = 0; col < reactorButtons[row].length; col++) {
                 int buttonSize = Math.min(reactorButtons[row][col].getWidth(), reactorButtons[row][col].getHeight());
                 if (buttonSize > 2) {
-                    final ReactorItem component = reactor.getComponentAt(row, col);
-                    if (component != null && component.image != null) {
-                        reactorButtons[row][col].setIcon(new ImageIcon(component.image.getScaledInstance(buttonSize * 8 / 10, buttonSize * 8 / 10, Image.SCALE_FAST)));
+                    final var component = reactor.getComponentAt(row, col);
+                    if (component != null && component.getImage() != null) {
+                        reactorButtons[row][col].setIcon(new ImageIcon(component.getImage().getScaledInstance(buttonSize * 8 / 10, buttonSize * 8 / 10, Image.SCALE_FAST)));
                     } else {
                         reactorButtons[row][col].setIcon(null);
                     }
@@ -1820,7 +1823,7 @@ public class ReactorPlannerFrame extends javax.swing.JFrame {
         outputArea = new javax.swing.JTextArea(5, 20);
         outputArea.setEditable(false);
         outputPane.setViewportView(outputArea);
-        simulatedReactor = new Reactor();
+        simulatedReactor = new Reactor(componentFactory);
         simulatedReactor.setCode(reactor.getCode());
         outputTabs.setSelectedComponent(outputPane);
         simulator = new AutomationSimulator(simulatedReactor, outputArea, reactorButtonPanels, csvFile, csvLimit);
@@ -1873,7 +1876,7 @@ public class ReactorPlannerFrame extends javax.swing.JFrame {
 
     private void thresholdSpinnerStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_thresholdSpinnerStateChanged
         if (selectedColumn >= 0 && selectedRow >= 0 && reactor.getComponentAt(selectedRow, selectedColumn) != null) {
-            ReactorItem component = reactor.getComponentAt(selectedRow, selectedColumn);
+            var component = reactor.getComponentAt(selectedRow, selectedColumn);
             component.setAutomationThreshold(((Number)thresholdSpinner.getValue()).intValue());
             if (!lockCode) {
                 updateCodeField();
@@ -1883,7 +1886,7 @@ public class ReactorPlannerFrame extends javax.swing.JFrame {
 
     private void pauseSpinnerStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_pauseSpinnerStateChanged
         if (selectedColumn >= 0 && selectedRow >= 0 && reactor.getComponentAt(selectedRow, selectedColumn) != null) {
-            ReactorItem component = reactor.getComponentAt(selectedRow, selectedColumn);
+            var component = reactor.getComponentAt(selectedRow, selectedColumn);
             component.setReactorPause(((Number)pauseSpinner.getValue()).intValue());
             if (!lockCode) {
                 updateCodeField();
@@ -2261,10 +2264,10 @@ public class ReactorPlannerFrame extends javax.swing.JFrame {
             final int finalRow = row;
             for (int col = 0; col < reactorButtons[row].length; col++) {
                 final int finalCol = col;
-                ReactorItem componentToPlace = reactor.getComponentAt(row, col);
+                var componentToPlace = reactor.getComponentAt(row, col);
                 int buttonSize = Math.min(reactorButtons[finalRow][finalCol].getWidth(), reactorButtons[finalRow][finalCol].getHeight());
-                if (buttonSize > 2 && componentToPlace != null && componentToPlace.image != null) {
-                    reactorButtons[finalRow][finalCol].setIcon(new ImageIcon(componentToPlace.image.getScaledInstance(buttonSize * 8 / 10, buttonSize * 8 / 10, Image.SCALE_FAST)));
+                if (buttonSize > 2 && componentToPlace != null && componentToPlace.getImage() != null) {
+                    reactorButtons[finalRow][finalCol].setIcon(new ImageIcon(componentToPlace.getImage().getScaledInstance(buttonSize * 8 / 10, buttonSize * 8 / 10, Image.SCALE_FAST)));
                     reactorButtons[finalRow][finalCol].setToolTipText(componentToPlace.toString());
                     reactorButtons[finalRow][finalCol].setBackground(Color.LIGHT_GRAY);
                 } else {
@@ -2288,7 +2291,7 @@ public class ReactorPlannerFrame extends javax.swing.JFrame {
     
     /**
      * Builds an integer comparison string using the resource bundle, based on whether both left and right values are non-default, or just one.
-     * @param comparison the comparison type, for looking up the appropriate keys in the resource bundle, between "Comparison." and ".Both", ".LeftOnly", or ".RightOnly"
+     * @param comparisonType the comparison type, for looking up the appropriate keys in the resource bundle, between "Comparison." and ".Both", ".LeftOnly", or ".RightOnly"
      * @param left the left-side value of the comparison
      * @param right the right-side value of the comparison
      * @param defaultValue the default value for the relevant entry, and if either left or right is equal to it, that value can be omitted as not applicable.
@@ -2307,7 +2310,7 @@ public class ReactorPlannerFrame extends javax.swing.JFrame {
     
     /**
      * Builds an integer comparison string using the resource bundle, based on whether both left and right values are non-default, or just one.
-     * @param comparison the comparison type, for looking up the appropriate keys in the resource bundle, between "Comparison." and ".BothColored", ".LeftOnly", or ".RightOnly"
+     * @param comparisonType the comparison type, for looking up the appropriate keys in the resource bundle, between "Comparison." and ".BothColored", ".LeftOnly", or ".RightOnly"
      * @param left the left-side value of the comparison
      * @param right the right-side value of the comparison
      * @param defaultValue the default value for the relevant entry, and if either left or right is equal to it, that value can be omitted as not applicable.
@@ -2370,9 +2373,9 @@ public class ReactorPlannerFrame extends javax.swing.JFrame {
         StringBuilder postsimText = new StringBuilder(500);
         boolean alwaysDiff = !onlyShowDiffCheck.isSelected();
         text.append("<html>");
-        Reactor tempReactor = new Reactor();
+        Reactor tempReactor = new Reactor(componentFactory);
         tempReactor.setCode(currentReactorCode);
-        Reactor prevReactor = new Reactor();
+        Reactor prevReactor = new Reactor(componentFactory);
         prevReactor.setCode(prevReactorCode);
         SimulationData leftData = simulator.getData();
         SimulationData rightData = prevSimulator.getData();
@@ -2488,9 +2491,9 @@ public class ReactorPlannerFrame extends javax.swing.JFrame {
         boolean moxStyleReactor = false;
         for (int row = 0; row < 6; row++) {
             for (int col = 0; col < 9; col++) {
-                ReactorItem component = tempReactor.getComponentAt(row, col);
+                var component = tempReactor.getComponentAt(row, col);
                 if (component != null) {
-                    String baseName = component.baseName;
+                    String baseName = component.getBaseName();
                     if ("fuelRodMox".equals(baseName) || "dualFuelRodMox".equals(baseName) || "quadFuelRodMox".equals(baseName)
                             || "fuelRodNaquadah".equals(baseName) || "dualFuelRodNaquadah".equals(baseName) || "quadFuelRodNaquadah".equals(baseName)) {
                         moxStyleReactor = true;

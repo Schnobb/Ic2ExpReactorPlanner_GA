@@ -3,9 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package Ic2ExpReactorPlanner.components;
+package Ic2ExpReactorPlanner.old.components;
 
-import java.awt.Image;
+import Ic2ExpReactorPlanner.components.IReactorItem;
+
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Represents a heat exchanger of some sort in a reactor.
@@ -16,6 +20,8 @@ public class Exchanger extends ReactorItem {
     private final int switchSide;
     private final int switchReactor;
 
+    private final List<IReactorItem> heatableNeighbors = new ArrayList<>(4);
+    
     public Exchanger(final int id, final String baseName, final String name, final Image image, final double maxDamage, final double maxHeat, final String sourceMod, final int switchSide, final int switchReactor) {
         super(id, baseName, name, image, maxDamage, maxHeat, sourceMod);
         this.switchSide = switchSide;
@@ -30,18 +36,22 @@ public class Exchanger extends ReactorItem {
     
     @Override
     public void transfer() {
+        heatableNeighbors.clear();
+
+        for (var component : adjacentNeighbors) {
+            if (component != null && component.isHeatAcceptor()) {
+                heatableNeighbors.add(component);
+            }
+        }
+
         // Code adapted from decompiled IC2 code, class ItemReactorHeatSwitch, with permission from Thunderdark.
         double myHeat = 0;
         if (switchSide > 0) {
-            for (var component : adjacentNeighbors) {
-                if (component == null || !component.isHeatAcceptor()) {
-                    continue;
-                }
-
+            for (var heatableNeighbor : heatableNeighbors) {
                 double mymed = getCurrentHeat() * 100.0 / getMaxHeat();
-                double heatablemed = component.getCurrentHeat() * 100.0 / component.getMaxHeat();
+                double heatablemed = heatableNeighbor.getCurrentHeat() * 100.0 / heatableNeighbor.getMaxHeat();
 
-                double add = (int) (component.getMaxHeat() / 100.0 * (heatablemed + mymed / 2.0));
+                double add = (int) (heatableNeighbor.getMaxHeat() / 100.0 * (heatablemed + mymed / 2.0));
                 if (add > switchSide) {
                     add = switchSide;
                 }
@@ -66,7 +76,7 @@ public class Exchanger extends ReactorItem {
                 if (add > 0) {
                     currentComponentHeating += add;
                 }
-                add = component.adjustCurrentHeat(add);
+                add = heatableNeighbor.adjustCurrentHeat(add);
                 myHeat += add;
             }
         }

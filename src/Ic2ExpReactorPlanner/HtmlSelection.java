@@ -5,7 +5,8 @@
  */
 package Ic2ExpReactorPlanner;
 
-import Ic2ExpReactorPlanner.GeneticOptimizer.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
@@ -28,6 +29,7 @@ import javax.swing.text.rtf.RTFEditorKit;
  * @author Brian McCloud
  */
 public class HtmlSelection implements Transferable, ClipboardOwner {
+    private static final Logger Logger = LoggerFactory.getLogger(HtmlSelection.class);
 
     private final DataFlavor htmlFlavor = new DataFlavor("text/html; charset=utf-8", null);
     private final DataFlavor plainFlavor = new DataFlavor("text/plain; charset=utf-8", null);
@@ -90,7 +92,7 @@ public class HtmlSelection implements Transferable, ClipboardOwner {
             rtfStr = rtfStr.replace("#NEW_LINE#", "\\line ");
             rtfStr = rtfStr.replace("#END_FONT#", "\\cf0 ");
         } catch (IOException | BadLocationException e) {
-            Logger.log(e, "Could not convert input to RTF");
+            Logger.error("Could not convert input to RTF", e);
         }
         return rtfStr;
     }

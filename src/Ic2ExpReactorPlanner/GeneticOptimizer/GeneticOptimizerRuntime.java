@@ -3,17 +3,18 @@ package Ic2ExpReactorPlanner.GeneticOptimizer;
 import Ic2ExpReactorPlanner.ComponentFactory;
 import Ic2ExpReactorPlanner.components.FuelRod;
 import Ic2ExpReactorPlanner.components.ReactorItem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
 public class GeneticOptimizerRuntime {
-    public static void main(String[] args) {
+    private static final Logger Logger = LoggerFactory.getLogger(GeneticOptimizerRuntime.class);
+
+    static void main(String[] args) {
         GAConfig config = GAConfig.loadConfig(args.length > 0 ? args[0] : null);
 
         if (config == null) {
@@ -27,47 +28,41 @@ public class GeneticOptimizerRuntime {
             providedSeed = Long.parseLong(args[1]);
         }
 
-        Path logDirectory = Paths.get("logs");
-        try {
-            Logger.setLogFileFromDirectory("GeneticOptimizerRuntime", logDirectory);
-        } catch (IOException e) {
-            Logger.log(e, "Could not validate log directory '" + logDirectory + "'");
-        }
-
-        Logger.log("Loaded config '%s'.", config.getConfigName());
+        Logger.info("Loaded config '{}'.", config.getConfigName());
 
         // Create the seed
         long seed = seedProvided ? providedSeed : new SecureRandom().nextLong();
-        Logger.log("Setting up evolution with seed %d", seed);
+        Logger.info("Setting up evolution with seed {}", seed);
 
         // Set GTNH behavior on fuel since we want to generate GTNH reactors
         FuelRod.setGTNHBehavior(true);
 
+        var componentFactory = ComponentFactory.getInstance();
+
         // Create the evolution engine
-        EvolutionEngine evolutionEngine = new EvolutionEngine(config, seed);
+        EvolutionEngine evolutionEngine = new EvolutionEngine(config, seed, componentFactory);
 
         // Load seed reactors if configured
         if (config.evolution.seedFile != null && !config.evolution.seedFile.isEmpty()) {
-            List<ReactorGenome> seedGenomes = SeedFileLoader.LoadSeedFile(config, config.evolution.seedFile);
+            List<ReactorGenome> seedGenomes = SeedFileLoader.LoadSeedFile(config, config.evolution.seedFile, componentFactory);
             evolutionEngine.preSeedGen0(seedGenomes);
         }
 
         // Run
-        List<EvolutionEngine.EvaluatedGenome> finalPopulation = evolutionEngine.run(true);
+        List<EvolutionEngine.EvaluatedGenome> finalPopulation = evolutionEngine.run();
 
         // Show the top 10 reactor designs
         List<EvolutionEngine.EvaluatedGenome> top10 = getTop10Species(config, finalPopulation);
 
-        Logger.log("");
-        Logger.log("Top 10 species:");
+        Logger.info("Top 10 species:");
         for (int i = 0; i < Math.min(10, top10.size()); i++) {
             EvolutionEngine.EvaluatedGenome evaluatedGenome = top10.get(i);
 
-            ReactorItem fuelType = ComponentFactory.getDefaultComponent(evaluatedGenome.getGenome().getFuelType());
+            var fuelType = componentFactory.getDefaultComponent(evaluatedGenome.getGenome().getFuelType());
             assert fuelType != null;
-            String fuelTypeName = fuelType.name;
+            String fuelTypeName = fuelType.getName();
 
-            Logger.log("%2d - %s Fitness: %7.2f; Output: %7.2fEU/t - %s", i + 1, fuelTypeName, evaluatedGenome.getFitness(), evaluatedGenome.getSimulationData().avgEUOutput, evaluatedGenome.getGenome().getERPCode());
+            Logger.info("%2d - %s Fitness: %7.2f; Output: %7.2fEU/t - %s".formatted(i + 1, fuelTypeName, evaluatedGenome.getFitness(), evaluatedGenome.getSimulationData().avgEUOutput, evaluatedGenome.getGenome().getERPCode()));
         }
     }
 

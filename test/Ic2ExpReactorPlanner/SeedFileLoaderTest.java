@@ -3,6 +3,7 @@ package Ic2ExpReactorPlanner;
 import Ic2ExpReactorPlanner.GeneticOptimizer.GAConfig;
 import Ic2ExpReactorPlanner.GeneticOptimizer.ReactorGenome;
 import Ic2ExpReactorPlanner.GeneticOptimizer.SeedFileLoader;
+import Ic2ExpReactorPlanner.old.ComponentFactory;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -22,14 +23,14 @@ public class SeedFileLoaderTest {
         ArrayList<ReactorGenome> expectedGenomes = new ArrayList<>();
 
         for (String code : expectedCodes) {
-            Reactor reactor = new Reactor();
+            Reactor reactor = new Reactor(ComponentFactory.getInstance());
             reactor.setCode(code);
-            expectedGenomes.add(ReactorGenome.fromReactor(config, reactor));
+            expectedGenomes.add(ReactorGenome.fromReactor(config, reactor, ComponentFactory.getInstance()));
         }
 
         // Test
         String currentDir = System.getProperty("user.dir");
-        List<ReactorGenome> actualGenomes = SeedFileLoader.LoadSeedFile(config, "preload_test.txt");
+        List<ReactorGenome> actualGenomes = SeedFileLoader.LoadSeedFile(config, "preload_test.txt", ComponentFactory.getInstance());
 
         // Assert
         assertEquals("Loaded genomes and expected genomes are different.", expectedGenomes, actualGenomes);

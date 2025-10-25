@@ -27,6 +27,8 @@ repositories {
 
 dependencies {
     implementation 'com.google.code.gson:gson:2.8.9'
+    implementation("org.slf4j:slf4j-api:2.0.17")
+    implementation("ch.qos.logback:logback-classic:1.5.20")
     testImplementation group: 'junit', name: 'junit', version: '4.10'
     testImplementation 'org.hamcrest:hamcrest-core:1.3'
 }

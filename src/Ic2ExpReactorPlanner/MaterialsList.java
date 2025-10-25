@@ -1,6 +1,8 @@
 package Ic2ExpReactorPlanner;
 
 import static Ic2ExpReactorPlanner.BundleHelper.getI18n;
+
+import Ic2ExpReactorPlanner.components.IReactorItem;
 import Ic2ExpReactorPlanner.components.ReactorItem;
 import java.text.DecimalFormat;
 import java.util.HashMap;
@@ -225,8 +227,8 @@ public final class MaterialsList {
         componentMaterialsMap = buildComponentMaterialsMap();
     }
     
-    public static MaterialsList getMaterialsForComponent(ReactorItem component) {
-        return componentMaterialsMap.get(component.baseName);
+    public static MaterialsList getMaterialsForComponent(IReactorItem component) {
+        return componentMaterialsMap.get(component.getBaseName());
     }
     
     private static Map<String, MaterialsList> buildComponentMaterialsMap() {

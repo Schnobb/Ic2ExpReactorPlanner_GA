@@ -1,5 +1,6 @@
 package Ic2ExpReactorPlanner;
 
+import Ic2ExpReactorPlanner.components.IReactorItem;
 import Ic2ExpReactorPlanner.components.ReactorItem;
 
 import java.text.DecimalFormat;
@@ -58,7 +59,7 @@ public class ReactorSimulator {
     private final boolean[][] alreadyBroken;
     private final boolean[][] needsCooldown;
 
-    private final ArrayList<ReactorItem> allComponents = new ArrayList<>(54);
+    private final ArrayList<IReactorItem> allComponents = new ArrayList<>(54);
 
     private Consumer<String> publisher;
 
@@ -155,7 +156,7 @@ public class ReactorSimulator {
 
         buildComponentList(reactor);
 
-        for (ReactorItem component : this.allComponents) {
+        for (var component : this.allComponents) {
             component.clearCurrentHeat();
             component.clearDamage();
             this.totalRodCount += component.getRodCount();
@@ -178,7 +179,7 @@ public class ReactorSimulator {
             reactor.clearEUOutput();
             reactor.clearVentedHeat();
 
-            for (ReactorItem component : this.allComponents) {
+            for (var component : this.allComponents) {
                 component.preReactorTick();
             }
 
@@ -188,7 +189,7 @@ public class ReactorSimulator {
 
             double generatedHeat = 0.0;
 
-            for (ReactorItem component : this.allComponents) {
+            for (var component : this.allComponents) {
                 if (component.isBroken())
                     continue;
 
@@ -210,7 +211,7 @@ public class ReactorSimulator {
             maxGeneratedHeat = Math.max(generatedHeat, maxGeneratedHeat);
 
             if (this.active) {
-                for (ReactorItem component : this.allComponents) {
+                for (var component : this.allComponents) {
                     if (component.isBroken())
                         continue;
 
@@ -328,7 +329,7 @@ public class ReactorSimulator {
             double prevReactorHeat = reactor.getCurrentHeat();
             double prevTotalComponentHeat = 0.0;
 
-            for (ReactorItem component : this.allComponents) {
+            for (var component : this.allComponents) {
                 if (component.isBroken())
                     continue;
 
@@ -338,7 +339,7 @@ public class ReactorSimulator {
                 prevTotalComponentHeat += component.getCurrentHeat();
                 sendToPublisher(String.format("R%dC%d:0xFFA500", component.getRow(), component.getCol())); // NOI18N
                 if (loggingEnabled)
-                    component.info.append(formatI18n("ComponentInfo.RemainingHeat", component.getCurrentHeat()));
+                    component.getInfo().append(formatI18n("ComponentInfo.RemainingHeat", component.getCurrentHeat()));
             }
 
             if (prevReactorHeat == 0.0 && prevTotalComponentHeat == 0.0) {
@@ -354,7 +355,7 @@ public class ReactorSimulator {
                     }
                     for (int row = 0; row < 6; row++) {
                         for (int col = 0; col < 9; col++) {
-                            ReactorItem component = reactor.getComponentAt(row, col);
+                            var component = reactor.getComponentAt(row, col);
                             if (component != null && !component.isBroken()) {
                                 component.dissipate();
                                 component.transfer();
@@ -371,12 +372,12 @@ public class ReactorSimulator {
                     currentTotalComponentHeat = 0.0;
                     for (int row = 0; row < 6; row++) {
                         for (int col = 0; col < 9; col++) {
-                            ReactorItem component = reactor.getComponentAt(row, col);
+                            var component = reactor.getComponentAt(row, col);
                             if (component != null && !component.isBroken()) {
                                 currentTotalComponentHeat += component.getCurrentHeat();
                                 if (component.getCurrentHeat() == 0.0 && this.needsCooldown[row][col]) {
                                     if (loggingEnabled)
-                                        component.info.append(formatI18n("ComponentInfo.CooldownTime", this.cooldownTicks));
+                                        component.getInfo().append(formatI18n("ComponentInfo.CooldownTime", this.cooldownTicks));
                                     this.needsCooldown[row][col] = false;
                                 }
                             }
@@ -397,7 +398,7 @@ public class ReactorSimulator {
             double explosionPower = 10.0;
             double explosionPowerMult = 1.0;
 
-            for (ReactorItem component : this.allComponents) {
+            for (var component : this.allComponents) {
                 explosionPower += component.getExplosionPowerOffset();
                 explosionPowerMult *= component.getExplosionPowerMultiplier();
             }
@@ -410,32 +411,32 @@ public class ReactorSimulator {
         double totalCellCooling = 0.0;
         double totalCondensatorCooling = 0.0;
 
-        for (ReactorItem component : this.allComponents) {
+        for (var component : this.allComponents) {
             if (component.getVentCoolingCapacity() > 0) {
                 if (loggingEnabled)
-                    component.info.append(formatI18n("ComponentInfo.UsedCooling", component.getBestVentCooling(), component.getVentCoolingCapacity()));
+                    component.getInfo().append(formatI18n("ComponentInfo.UsedCooling", component.getBestVentCooling(), component.getVentCoolingCapacity()));
                 totalEffectiveVentCooling += component.getBestVentCooling();
                 totalVentCoolingCapacity += component.getVentCoolingCapacity();
             } else if (component.getBestCellCooling() > 0) {
                 if (loggingEnabled)
-                    component.info.append(formatI18n("ComponentInfo.ReceivedHeat", component.getBestCellCooling()));
+                    component.getInfo().append(formatI18n("ComponentInfo.ReceivedHeat", component.getBestCellCooling()));
                 totalCellCooling += component.getBestCellCooling();
             } else if (component.getBestCondensatorCooling() > 0) {
                 if (loggingEnabled)
-                    component.info.append(formatI18n("ComponentInfo.ReceivedHeat", component.getBestCondensatorCooling()));
+                    component.getInfo().append(formatI18n("ComponentInfo.ReceivedHeat", component.getBestCondensatorCooling()));
                 totalCondensatorCooling += component.getBestCondensatorCooling();
             } else if (component.getMaxHeatGenerated() > 0) {
                 if (!reactor.isFluid() && component.getMaxEUGenerated() > 0) {
                     if (loggingEnabled)
-                        component.info.append(formatI18n("ComponentInfo.GeneratedEU", component.getMinEUGenerated(), component.getMaxEUGenerated()));
+                        component.getInfo().append(formatI18n("ComponentInfo.GeneratedEU", component.getMinEUGenerated(), component.getMaxEUGenerated()));
                 }
                 if (loggingEnabled)
-                    component.info.append(formatI18n("ComponentInfo.GeneratedHeat", component.getMinHeatGenerated(), component.getMaxHeatGenerated()));
+                    component.getInfo().append(formatI18n("ComponentInfo.GeneratedHeat", component.getMinHeatGenerated(), component.getMaxHeatGenerated()));
             }
 
             if (component.getMaxReachedHeat() > 0) {
                 if (loggingEnabled)
-                    component.info.append(formatI18n("ComponentInfo.ReachedHeat", component.getMaxReachedHeat(), component.getMaxHeat()));
+                    component.getInfo().append(formatI18n("ComponentInfo.ReachedHeat", component.getMaxReachedHeat(), component.getMaxHeat()));
             }
         }
 
@@ -470,7 +471,7 @@ public class ReactorSimulator {
     }
 
     private void handleBrokenComponents(Reactor reactor, SimulationData data, int reactorTicks, final double totalHeatOutput, final int totalRodCount, final double totalEUoutput, final double minReactorHeat, final double maxReactorHeat, boolean logginEnabled) {
-        for (ReactorItem component : this.allComponents) {
+        for (var component : this.allComponents) {
             int row = component.getRow();
             int col = component.getCol();
             if (component.isBroken() && !this.alreadyBroken[row][col]) {
@@ -478,7 +479,7 @@ public class ReactorSimulator {
                 if (component.getRodCount() == 0) {
                     sendToPublisher(String.format("R%dC%d:0xFF0000", row, col)); //NOI18N
                     if (logginEnabled)
-                        component.info.append(formatI18n("ComponentInfo.BrokeTime", reactorTicks));
+                        component.getInfo().append(formatI18n("ComponentInfo.BrokeTime", reactorTicks));
                     if (this.componentsIntact) {
                         this.componentsIntact = false;
                         data.firstComponentBrokenTime = reactorTicks;
@@ -559,14 +560,14 @@ public class ReactorSimulator {
     }
 
     private void handleAutomation(Reactor reactor, final int reactorTicks, boolean loggingEnabled) {
-        for (ReactorItem component : this.allComponents) {
+        for (var component : this.allComponents) {
             if (reactor.isAutomated()) {
                 if (component.getMaxHeat() > 1) {
                     if (component.getAutomationThreshold() > component.getInitialHeat() && component.getCurrentHeat() >= component.getAutomationThreshold()) {
                         component.clearCurrentHeat();
-                        this.replacedItems.add(component.name);
+                        this.replacedItems.add(component.getName());
                         if (loggingEnabled)
-                            component.info.append(formatI18n("ComponentInfo.ReplacedTime", reactorTicks));
+                            component.getInfo().append(formatI18n("ComponentInfo.ReplacedTime", reactorTicks));
                         if (component.getReactorPause() > 0) {
                             this.active = false;
                             this.pauseTimer = Math.max(this.pauseTimer, component.getReactorPause());
@@ -576,9 +577,9 @@ public class ReactorSimulator {
                         }
                     } else if (component.getAutomationThreshold() < component.getInitialHeat() && component.getCurrentHeat() <= component.getAutomationThreshold()) {
                         component.clearCurrentHeat();
-                        this.replacedItems.add(component.name);
+                        this.replacedItems.add(component.getName());
                         if (loggingEnabled)
-                            component.info.append(formatI18n("ComponentInfo.ReplacedTime", reactorTicks));
+                            component.getInfo().append(formatI18n("ComponentInfo.ReplacedTime", reactorTicks));
                         if (component.getReactorPause() > 0) {
                             this.active = false;
                             this.pauseTimer = Math.max(this.pauseTimer, component.getReactorPause());
@@ -589,9 +590,9 @@ public class ReactorSimulator {
                     }
                 } else if (component.isBroken() || (component.getMaxDamage() > 1 && component.getCurrentDamage() >= component.getAutomationThreshold())) {
                     component.clearDamage();
-                    this.replacedItems.add(component.name);
+                    this.replacedItems.add(component.getName());
                     if (loggingEnabled)
-                        component.info.append(formatI18n("ComponentInfo.ReplacedTime", reactorTicks));
+                        component.getInfo().append(formatI18n("ComponentInfo.ReplacedTime", reactorTicks));
                     if (component.getReactorPause() > 0) {
                         this.active = false;
                         this.pauseTimer = Math.max(this.pauseTimer, component.getReactorPause());
@@ -604,9 +605,9 @@ public class ReactorSimulator {
 
             if (reactor.isUsingReactorCoolantInjectors() && component != null && component.needsCoolantInjected()) {
                 component.injectCoolant();
-                if ("rshCondensator".equals(component.baseName)) {
+                if ("rshCondensator".equals(component.getBaseName())) {
                     this.redstoneUsed++;
-                } else if ("lzhCondensator".equals(component.baseName)) {
+                } else if ("lzhCondensator".equals(component.getBaseName())) {
                     this.lapisUsed++;
                 }
             }
@@ -648,7 +649,7 @@ public class ReactorSimulator {
 
     private void calculateHeatingCooling(final int reactorTicks) {
         if (reactorTicks > 20) {
-            for (ReactorItem component : this.allComponents) {
+            for (var component : this.allComponents) {
                 this.totalHullHeating += component.getCurrentHullHeating();
                 this.totalComponentHeating += component.getCurrentComponentHeating();
                 this.totalHullCooling += component.getCurrentHullCooling();
@@ -661,7 +662,7 @@ public class ReactorSimulator {
         this.allComponents.clear();
         for (int y = 0; y < 6; y++) {
             for (int x = 0; x < 9; x++) {
-                ReactorItem component = reactor.getComponentAt(y, x);
+                var component = reactor.getComponentAt(y, x);
                 if (component != null) {
                     this.allComponents.add(component);
                 }
@@ -677,7 +678,7 @@ public class ReactorSimulator {
                 double totalVentCoolingCapacity = 0;
                 for (int row = 0; row < 6; row++) {
                     for (int col = 0; col < 9; col++) {
-                        ReactorItem component = reactor.getComponentAt(row, col);
+                        var component = reactor.getComponentAt(row, col);
                         if (component != null) {
                             totalHullCoolingCapacity += component.getHullCoolingCapacity();
                             totalVentCoolingCapacity += component.getVentCoolingCapacity();
