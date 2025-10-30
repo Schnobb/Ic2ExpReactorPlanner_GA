@@ -3,10 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package Ic2ExpReactorPlanner.components;
+package Ic2ExpReactorPlanner.old.components;
 
-import Ic2ExpReactorPlanner.MaterialsList;
-import java.awt.Image;
+import java.awt.*;
 
 /**
  * Represents a condensator in a reactor, either RSH or LZH.
@@ -31,19 +30,19 @@ public class Condensator extends ReactorItem {
         bestCondensatorCooling = Math.max(currentCondensatorCooling, bestCondensatorCooling);
         double acceptedHeat = Math.min(heat, getMaxHeat() - heat);
         double result = heat - acceptedHeat;
-        setCurrentHeat(getCurrentHeat() + acceptedHeat);
-        maxReachedHeat = Math.max(maxReachedHeat, getCurrentHeat());
+        currentHeat += acceptedHeat;
+        maxReachedHeat = Math.max(maxReachedHeat, currentHeat);
         return result;
     }
 
     @Override
     public boolean needsCoolantInjected() {
-        return getCurrentHeat() > 0.85 * getMaxHeat();
+        return currentHeat > 0.85 * getMaxHeat();
     }
     
     @Override
     public void injectCoolant() {
-        setCurrentHeat(0);
+        currentHeat = 0;
     }
 
 }

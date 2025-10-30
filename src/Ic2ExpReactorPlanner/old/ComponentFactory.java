@@ -3,15 +3,18 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package Ic2ExpReactorPlanner;
+package Ic2ExpReactorPlanner.old;
 
-import static Ic2ExpReactorPlanner.BundleHelper.getI18n;
-
-import Ic2ExpReactorPlanner.components.*;
+import Ic2ExpReactorPlanner.IComponentFactory;
+import Ic2ExpReactorPlanner.TextureFactory;
+import Ic2ExpReactorPlanner.components.IReactorItem;
+import Ic2ExpReactorPlanner.old.components.*;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+
+import static Ic2ExpReactorPlanner.BundleHelper.getI18n;
 
 /**
  * Factory class to handle creating components by id or name.
@@ -29,7 +32,7 @@ public class ComponentFactory implements IComponentFactory {
             componentFactory = new ComponentFactory();
         return componentFactory;
     }
-
+    
     private static final ReactorItem[] ITEMS = {
         null, // special entry to make sure id 0 corresponds to empty space (no component)
         new FuelRod(1, "fuelRodUranium", getI18n("ComponentName.FuelRodUranium"), TextureFactory.getImage("reactorUraniumSimple.png", "uranium.png"), 20e3, 1, null, 100, 2, 1, false),
@@ -125,66 +128,61 @@ public class ComponentFactory implements IComponentFactory {
         }
         return null;
     }
-
+    
     /**
      * Gets a default instances of the specified component (such as for drawing button images)
      * @param id the id of the component.
      * @return the component with the specified id, or null if the id is out of range.
      */
-    @Override
     public IReactorItem getDefaultComponent(int id) {
-        if (id >= 0 && id < ComponentFactory.ITEMS.length) {
-            return ComponentFactory.ITEMS[id];
+        if (id >= 0 && id < ITEMS.length) {
+            return ITEMS[id];
         }
         return null;
     }
-
+    
     /**
      * Gets a default instances of the specified component (such as for drawing button images)
      * @param name the name of the component.
      * @return the component with the specified name, or null if the name is not found.
      */
-    @Override
     public IReactorItem getDefaultComponent(String name) {
         if (name != null) {
             return ITEM_MAP.get(name);
         }
         return null;
     }
-
+    
     /**
      * Creates a new instance of the specified component.
      * @param id the id of the component to create.
      * @return a new instance of the specified component, or null if the id is out of range.
      */
-    @Override
     public IReactorItem createComponent(int id) {
         if (id >= 0 && id < ITEMS.length) {
             return copy(ITEMS[id]);
         }
         return null;
     }
-
+    
     /**
      * Creates a new instance of the specified component.
      * @param name the name of the component to create.
      * @return a new instance of the specified component, or null if the name is not found.
      */
-    @Override
     public IReactorItem createComponent(String name) {
         if (name != null) {
             return copy(ITEM_MAP.get(name));
         }
         return null;
     }
-
+       
     /**
      * Get the number of defined components.
      * @return the number of defined components.
      */
-    @Override
     public int getComponentCount() {
-        return ComponentFactory.ITEMS.length;
+        return ITEMS.length;
     }
-
+    
 }

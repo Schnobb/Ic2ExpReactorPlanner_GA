@@ -7,6 +7,8 @@ package Ic2ExpReactorPlanner;
 
 import static Ic2ExpReactorPlanner.BundleHelper.formatI18n;
 import static Ic2ExpReactorPlanner.BundleHelper.getI18n;
+
+import Ic2ExpReactorPlanner.components.IReactorItem;
 import Ic2ExpReactorPlanner.components.ReactorItem;
 import java.awt.HeadlessException;
 import javax.swing.JOptionPane;
@@ -17,7 +19,7 @@ import javax.swing.JOptionPane;
  */
 public class Reactor {
     
-    private final ReactorItem[][] grid = new ReactorItem[6][9];
+    private final IReactorItem[][] grid = new IReactorItem[6][9];
     
     private double currentEUOutput = 0.0;
     
@@ -57,15 +59,21 @@ public class Reactor {
     private static final int MAX_PARAM_TYPES = 3;
 
     public static final int MAX_COMPONENT_HEAT = 1_080_000;
-    
-    public ReactorItem getComponentAt(final int row, final int column) {
+
+    private final IComponentFactory componentFactory;
+
+    public Reactor(IComponentFactory componentFactory) {
+        this.componentFactory = componentFactory;
+    }
+
+    public IReactorItem getComponentAt(final int row, final int column) {
         if (row >= 0 && row < grid.length && column >= 0 && column < grid[row].length) {
             return grid[row][column];
         }
         return null;
     }
     
-    public void setComponentAt(final int row, final int column, final ReactorItem component) {
+    public void setComponentAt(final int row, final int column, final IReactorItem component) {
         if (row >= 0 && row < grid.length && column >= 0 && column < grid[row].length) {
             if (grid[row][column] != null) {
                 grid[row][column].removeFromReactor();
@@ -169,7 +177,7 @@ public class Reactor {
         for (int col = 0; col < grid[0].length; col++) {
             for (int row = 0; row < grid.length; row++) {
                 if (getComponentAt(row, col) != null) {
-                    result.add(getComponentAt(row, col).name);
+                    result.add(getComponentAt(row, col).getName());
                 }
             }
         }
@@ -249,7 +257,7 @@ public class Reactor {
                 }
                 for (int row = 0; row < grid.length; row++) {
                     for (int col = 0; col < grid[row].length; col++) {
-                        final ReactorItem component = ComponentFactory.createComponent(ids[row][col]);
+                        final var component = componentFactory.createComponent(ids[row][col]);
                         for (int paramNum = 0; paramNum < MAX_PARAM_TYPES; paramNum++) {
                             switch (paramTypes[row][col][paramNum]) {
                                 case 'h':
@@ -362,96 +370,96 @@ public class Reactor {
         for (int x = 8; x >= 0; x--) {
             for (int y = 5; y >= 0; y--) {
                 int nextValue = decoder.readInt(7);
-                
+
                 // items are no longer stackable in IC2 reactors, but stack sizes from the planner code still need to be handled
                 if (nextValue > 64) {
                     nextValue = decoder.readInt(7);
                 }
-                
+
                 switch (nextValue) {
                     case 0:
                         setComponentAt(y, x, null);
                         break;
                     case 1:
-                        setComponentAt(y, x, ComponentFactory.createComponent("fuelRodUranium"));
+                        setComponentAt(y, x, componentFactory.createComponent("fuelRodUranium"));
                         break;
                     case 2:
-                        setComponentAt(y, x, ComponentFactory.createComponent("dualFuelRodUranium"));
+                        setComponentAt(y, x, componentFactory.createComponent("dualFuelRodUranium"));
                         break;
                     case 3:
-                        setComponentAt(y, x, ComponentFactory.createComponent("quadFuelRodUranium"));
+                        setComponentAt(y, x, componentFactory.createComponent("quadFuelRodUranium"));
                         break;
                     case 4:
                         warnings.append(formatI18n("Warning.DepletedIsotope", y, x));
                         break;
                     case 5:
-                        setComponentAt(y, x, ComponentFactory.createComponent("neutronReflector"));
+                        setComponentAt(y, x, componentFactory.createComponent("neutronReflector"));
                         break;
                     case 6:
-                        setComponentAt(y, x, ComponentFactory.createComponent("thickNeutronReflector"));
+                        setComponentAt(y, x, componentFactory.createComponent("thickNeutronReflector"));
                         break;
                     case 7:
-                        setComponentAt(y, x, ComponentFactory.createComponent("heatVent"));
+                        setComponentAt(y, x, componentFactory.createComponent("heatVent"));
                         break;
                     case 8:
-                        setComponentAt(y, x, ComponentFactory.createComponent("reactorHeatVent"));
+                        setComponentAt(y, x, componentFactory.createComponent("reactorHeatVent"));
                         break;
                     case 9:
-                        setComponentAt(y, x, ComponentFactory.createComponent("overclockedHeatVent"));
+                        setComponentAt(y, x, componentFactory.createComponent("overclockedHeatVent"));
                         break;
                     case 10:
-                        setComponentAt(y, x, ComponentFactory.createComponent("advancedHeatVent"));
+                        setComponentAt(y, x, componentFactory.createComponent("advancedHeatVent"));
                         break;
                     case 11:
-                        setComponentAt(y, x, ComponentFactory.createComponent("componentHeatVent"));
+                        setComponentAt(y, x, componentFactory.createComponent("componentHeatVent"));
                         break;
                     case 12:
-                        setComponentAt(y, x, ComponentFactory.createComponent("rshCondensator"));
+                        setComponentAt(y, x, componentFactory.createComponent("rshCondensator"));
                         break;
                     case 13:
-                        setComponentAt(y, x, ComponentFactory.createComponent("lzhCondensator"));
+                        setComponentAt(y, x, componentFactory.createComponent("lzhCondensator"));
                         break;
                     case 14:
-                        setComponentAt(y, x, ComponentFactory.createComponent("heatExchanger"));
+                        setComponentAt(y, x, componentFactory.createComponent("heatExchanger"));
                         break;
                     case 15:
-                        setComponentAt(y, x, ComponentFactory.createComponent("coreHeatExchanger"));
+                        setComponentAt(y, x, componentFactory.createComponent("coreHeatExchanger"));
                         break;
                     case 16:
-                        setComponentAt(y, x, ComponentFactory.createComponent("componentHeatExchanger"));
+                        setComponentAt(y, x, componentFactory.createComponent("componentHeatExchanger"));
                         break;
                     case 17:
-                        setComponentAt(y, x, ComponentFactory.createComponent("advancedHeatExchanger"));
+                        setComponentAt(y, x, componentFactory.createComponent("advancedHeatExchanger"));
                         break;
                     case 18:
-                        setComponentAt(y, x, ComponentFactory.createComponent("reactorPlating"));
+                        setComponentAt(y, x, componentFactory.createComponent("reactorPlating"));
                         break;
                     case 19:
-                        setComponentAt(y, x, ComponentFactory.createComponent("heatCapacityReactorPlating"));
+                        setComponentAt(y, x, componentFactory.createComponent("heatCapacityReactorPlating"));
                         break;
                     case 20:
-                        setComponentAt(y, x, ComponentFactory.createComponent("containmentReactorPlating"));
+                        setComponentAt(y, x, componentFactory.createComponent("containmentReactorPlating"));
                         break;
                     case 21:
-                        setComponentAt(y, x, ComponentFactory.createComponent("coolantCell10k"));
+                        setComponentAt(y, x, componentFactory.createComponent("coolantCell10k"));
                         break;
                     case 22:
-                        setComponentAt(y, x, ComponentFactory.createComponent("coolantCell30k"));
+                        setComponentAt(y, x, componentFactory.createComponent("coolantCell30k"));
                         break;
                     case 23:
-                        setComponentAt(y, x, ComponentFactory.createComponent("coolantCell60k"));
+                        setComponentAt(y, x, componentFactory.createComponent("coolantCell60k"));
                         break;
                     case 24:
                         warnings.append(formatI18n("Warning.Heating", y, x));
                         break;
                     case 32:
-                        setComponentAt(y, x, ComponentFactory.createComponent("fuelRodThorium"));
+                        setComponentAt(y, x, componentFactory.createComponent("fuelRodThorium"));
                         break;
                     case 33:
-                        setComponentAt(y, x, ComponentFactory.createComponent("dualFuelRodThorium"));
+                        setComponentAt(y, x, componentFactory.createComponent("dualFuelRodThorium"));
                         break;
                     case 34:
-                        setComponentAt(y, x, ComponentFactory.createComponent("quadFuelRodThorium"));
+                        setComponentAt(y, x, componentFactory.createComponent("quadFuelRodThorium"));
                         break;
                     case 35:
                         warnings.append(formatI18n("Warning.Plutonium", y, x));
@@ -463,25 +471,25 @@ public class Reactor {
                         warnings.append(formatI18n("Warning.QuadPlutonium", y, x));
                         break;
                     case 38:
-                        setComponentAt(y, x, ComponentFactory.createComponent("iridiumNeutronReflector"));
+                        setComponentAt(y, x, componentFactory.createComponent("iridiumNeutronReflector"));
                         break;
                     case 39:
-                        setComponentAt(y, x, ComponentFactory.createComponent("coolantCellHelium60k"));
+                        setComponentAt(y, x, componentFactory.createComponent("coolantCellHelium60k"));
                         break;
                     case 40:
-                        setComponentAt(y, x, ComponentFactory.createComponent("coolantCellHelium180k"));
+                        setComponentAt(y, x, componentFactory.createComponent("coolantCellHelium180k"));
                         break;
                     case 41:
-                        setComponentAt(y, x, ComponentFactory.createComponent("coolantCellHelium360k"));
+                        setComponentAt(y, x, componentFactory.createComponent("coolantCellHelium360k"));
                         break;
                     case 42:
-                        setComponentAt(y, x, ComponentFactory.createComponent("coolantCellNak60k"));
+                        setComponentAt(y, x, componentFactory.createComponent("coolantCellNak60k"));
                         break;
                     case 43:
-                        setComponentAt(y, x, ComponentFactory.createComponent("coolantCellNak180k"));
+                        setComponentAt(y, x, componentFactory.createComponent("coolantCellNak180k"));
                         break;
                     case 44:
-                        setComponentAt(y, x, ComponentFactory.createComponent("coolantCellNak360k"));
+                        setComponentAt(y, x, componentFactory.createComponent("coolantCellNak360k"));
                         break;
                     default:
                         warnings.append(formatI18n("Warning.Unrecognized", nextValue, y, x));
@@ -527,7 +535,7 @@ public class Reactor {
                     componentId = storage.extract(58);
                 }
                 if (componentId != 0) {
-                    ReactorItem component = ComponentFactory.createComponent(componentId);
+                    var component = componentFactory.createComponent(componentId);
                     int hasSpecialAutomationConfig = storage.extract(1);
                     if (hasSpecialAutomationConfig > 0) {
                         component.setInitialHeat(storage.extract(maxComponentHeat));
@@ -558,7 +566,7 @@ public class Reactor {
         }
         maxSimulationTicks = storage.extract((int)5e6);
     }
-    
+
     // builds a Base64 code string, not including the prefix.
     private String buildCodeString() {
         BigintStorage storage = new BigintStorage();
@@ -576,11 +584,11 @@ public class Reactor {
         // grid is read (almost) first, so written (almost) last, and in reverse order
         for (int row = grid.length - 1; row >= 0; row--) {
             for (int col = grid[row].length - 1; col >= 0; col--) {
-                ReactorItem component = grid[row][col];
+                var component = grid[row][col];
                 if (component != null) {
-                    int id = component.id;
+                    int id = component.getId();
                     // only store automation details for a component if non-default, and add a flag bit to indicate their presence.  null components don't even need the flag bit.
-                    if (component.getInitialHeat() > 0 || component.getAutomationThreshold() != ComponentFactory.getDefaultComponent(id).getAutomationThreshold() || component.getReactorPause() != ComponentFactory.getDefaultComponent(id).getReactorPause()) {
+                    if (component.getInitialHeat() > 0 || component.getAutomationThreshold() != componentFactory.getDefaultComponent(id).getAutomationThreshold() || component.getReactorPause() != componentFactory.getDefaultComponent(id).getReactorPause()) {
                         if (automated) {
                             storage.store(component.getReactorPause(), (int)10e3);
                             storage.store(component.getAutomationThreshold(), (int)1080e3);
@@ -608,20 +616,20 @@ public class Reactor {
         StringBuilder result = new StringBuilder(108);
         for (int row = 0; row < grid.length; row++) {
             for (int col = 0; col < grid[row].length; col++) {
-                final ReactorItem component = getComponentAt(row, col);
-                final int id = (component != null) ? component.id : 0;
+                final var component = getComponentAt(row, col);
+                final int id = (component != null) ? component.getId() : 0;
                 result.append(String.format("%02X", id)); //NOI18N 
                 if (component != null && (component.getInitialHeat() > 0 
-                        || (automated && component.getAutomationThreshold() != ComponentFactory.getDefaultComponent(id).getAutomationThreshold())
-                        || (automated && component.getReactorPause() != ComponentFactory.getDefaultComponent(id).getReactorPause()))) {
+                        || (automated && component.getAutomationThreshold() != componentFactory.getDefaultComponent(id).getAutomationThreshold())
+                        || (automated && component.getReactorPause() != componentFactory.getDefaultComponent(id).getReactorPause()))) {
                     result.append("(");
                     if (component.getInitialHeat() > 0) {
                         result.append(String.format("h%s,", Integer.toString((int) component.getInitialHeat(), 36))); //NOI18N 
                     }
-                    if (automated && component.getAutomationThreshold() != ComponentFactory.getDefaultComponent(id).getAutomationThreshold()) {
+                    if (automated && component.getAutomationThreshold() != componentFactory.getDefaultComponent(id).getAutomationThreshold()) {
                         result.append(String.format("a%s,", Integer.toString(component.getAutomationThreshold(), 36))); //NOI18N 
                     }
-                    if (automated && component.getReactorPause() != ComponentFactory.getDefaultComponent(id).getReactorPause()) {
+                    if (automated && component.getReactorPause() != componentFactory.getDefaultComponent(id).getReactorPause()) {
                         result.append(String.format("p%s,", Integer.toString(component.getReactorPause(), 36))); //NOI18N 
                     }
                     result.setLength(result.length() - 1); // remove the last comma, whichever parameter it came from. 
@@ -696,35 +704,35 @@ public class Reactor {
     public void setUsingReactorCoolantInjectors(final boolean usingReactorCoolantInjectors) {
         this.usingReactorCoolantInjectors = usingReactorCoolantInjectors;
     }
-    
+
     public int getOnPulse() {
         return onPulse;
     }
-    
+
     public void setOnPulse(final int onPulse) {
         this.onPulse = onPulse;
     }
-    
+
     public int getOffPulse() {
         return offPulse;
     }
-    
+
     public void setOffPulse(final int offPulse) {
         this.offPulse = offPulse;
     }
-    
+
     public int getSuspendTemp() {
         return suspendTemp;
     }
-    
+
     public void setSuspendTemp(final int suspendTemp) {
         this.suspendTemp = suspendTemp;
     }
-    
+
     public int getResumeTemp() {
         return resumeTemp;
     }
-    
+
     public void setResumeTemp(final int resumeTemp) {
         this.resumeTemp = resumeTemp;
     }
@@ -752,7 +760,7 @@ public class Reactor {
     public void setMaxSimulationTicks(int maxSimulationTicks) {
         this.maxSimulationTicks = maxSimulationTicks;
     }
-    
+
     public void resetPulseConfig() {
         onPulse = DEFAULT_ON_PULSE;
         offPulse = DEFAULT_OFF_PULSE;

@@ -3,10 +3,11 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package Ic2ExpReactorPlanner.components;
+package Ic2ExpReactorPlanner.old.components;
 
-import Ic2ExpReactorPlanner.MaterialsList;
-import java.awt.Image;
+import Ic2ExpReactorPlanner.components.IReactorItem;
+
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 

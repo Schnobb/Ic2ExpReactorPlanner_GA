@@ -2,6 +2,7 @@ package Ic2ExpReactorPlanner;
 
 import Ic2ExpReactorPlanner.GeneticOptimizer.GAConfig;
 import Ic2ExpReactorPlanner.GeneticOptimizer.ReactorGenome;
+import Ic2ExpReactorPlanner.old.ComponentFactory;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -19,7 +20,7 @@ public class ReactorGenomeTest {
         GAConfig config = GAConfig.loadConfig(null);
         assertNotNull("Test setup failed: Could not load config", config);
 
-        ReactorGenome originalGenome = new ReactorGenome(config);
+        ReactorGenome originalGenome = new ReactorGenome(config, ComponentFactory.getInstance());
         originalGenome.setFuelType(config.fuels.valid[0]);
         for (int i = 0; i < originalGenome.getReactorLayout().length; i++) {
             // create a non-random pattern in the reactor layout
@@ -28,7 +29,7 @@ public class ReactorGenomeTest {
 
         // Test
         String serializedGenome = ReactorGenome.serialize(originalGenome);
-        ReactorGenome deserializedGenome = ReactorGenome.deserialize(config, serializedGenome);
+        ReactorGenome deserializedGenome = ReactorGenome.deserialize(config, serializedGenome, ComponentFactory.getInstance());
 
         // Asserts
         assertNotNull("Deserialized genome should not be null", deserializedGenome);
@@ -43,15 +44,15 @@ public class ReactorGenomeTest {
         assertNotNull("Test setup failed: Could not load config", config);
 
         String originalERPCode = "erp=AN0nc6OU0EZ6odjKIHf5LQtII1WK0d2I46Jsac29tPkOMkwUWLvXEmuRd6ZfDXo5b1GSvAM=";
-        Reactor reactorA = new Reactor();
+        Reactor reactorA = new Reactor(ComponentFactory.getInstance());
         reactorA.setCode(originalERPCode);
 
         // Test
-        ReactorGenome reactorBGenome = ReactorGenome.fromReactor(config, reactorA);
-        Reactor reactorB = reactorBGenome.toReactor();
+        ReactorGenome reactorBGenome = ReactorGenome.fromReactor(config, reactorA, ComponentFactory.getInstance());
+        var reactorB = reactorBGenome.toReactor();
 
-        ReactorGenome reactorCGenome = ReactorGenome.fromReactor(config, reactorB);
-        Reactor reactorC = reactorCGenome.toReactor();
+        ReactorGenome reactorCGenome = ReactorGenome.fromReactor(config, reactorB, ComponentFactory.getInstance());
+        var reactorC = reactorCGenome.toReactor();
 
         // Asserts
         assertNotNull("ReactorGenome.toReactor() should not be null", reactorC);
@@ -68,14 +69,14 @@ public class ReactorGenomeTest {
         mockRandom.setDoubleValues(0.99);
         mockRandom.setIntValues(10, 25);
 
-        ReactorGenome parentA = new ReactorGenome(config);
+        ReactorGenome parentA = new ReactorGenome(config, ComponentFactory.getInstance());
         Arrays.fill(parentA.getReactorLayout(), 1);
 
-        ReactorGenome parentB = new ReactorGenome(config);
+        ReactorGenome parentB = new ReactorGenome(config, ComponentFactory.getInstance());
         Arrays.fill(parentB.getReactorLayout(), 2);
 
         // Test
-        ReactorGenome child = ReactorGenome.crossBreed(config, parentA, parentB, mockRandom);
+        ReactorGenome child = ReactorGenome.crossBreed(config, parentA, parentB, mockRandom, ComponentFactory.getInstance());
 
         // Asserts
         for (int i = 0; i < child.getReactorLayout().length; i++) {
@@ -103,7 +104,7 @@ public class ReactorGenomeTest {
 
         mockRandom.setDoubleValues(doubleSequence);
 
-        ReactorGenome originalGenome = ReactorGenome.randomGenome(config, new Random());
+        ReactorGenome originalGenome = ReactorGenome.randomGenome(config, new Random(), ComponentFactory.getInstance());
         ReactorGenome copyOfOriginal = originalGenome.copy();
 
         GAConfig.PhaseProbabilities probabilities = config.mutation.refinement;
@@ -135,7 +136,7 @@ public class ReactorGenomeTest {
         int newComponentListIndex = 5;
         mockRandom.setIntValues(mutationIndex, newComponentListIndex);
 
-        ReactorGenome genome = new ReactorGenome(config);
+        ReactorGenome genome = new ReactorGenome(config, ComponentFactory.getInstance());
         int originalFuelType = config.fuels.valid[0];
         genome.setFuelType(originalFuelType);
 
@@ -181,7 +182,7 @@ public class ReactorGenomeTest {
         int secondNewComponentIndex = 4;
         mockRandom.setIntValues(firstNewComponentIndex, secondNewComponentIndex);
 
-        ReactorGenome genome = new ReactorGenome(config);
+        ReactorGenome genome = new ReactorGenome(config, ComponentFactory.getInstance());
 
         GAConfig.PhaseProbabilities probabilities = config.mutation.exploration;
 
@@ -228,7 +229,7 @@ public class ReactorGenomeTest {
 
         assertNotSame("Test setup failed: Not enough valid fuel types in config to test", oldFuelType, newFuelType);
 
-        ReactorGenome genome = new ReactorGenome(config);
+        ReactorGenome genome = new ReactorGenome(config, ComponentFactory.getInstance());
         genome.setFuelType(oldFuelType);
 
         GAConfig.PhaseProbabilities probabilities = config.mutation.refinement;
@@ -255,14 +256,14 @@ public class ReactorGenomeTest {
         config.speciation.fuelLayoutWeight = 0.9;
         config.speciation.componentsLayoutWeight = 0.1;
 
-        Reactor reactorA = new Reactor();
+        Reactor reactorA = new Reactor(ComponentFactory.getInstance());
         reactorA.setCode("erp=N0nc6OU0SvFZnCLVeUv6NTtSGYRuhPMF5/rPVu58BwJq0rGgaqVCookKH7pbJVRL7i32LAM=");
 
-        Reactor reactorB = new Reactor();
+        Reactor reactorB = new Reactor(ComponentFactory.getInstance());
         reactorB.setCode("erp=N0nc6OU0SvFZnCLVeUv6NTtSGYRuhPMF5/rPVu58BwJq0rGgaqVCookKH7pbJVRL7i32LAM=");
 
-        ReactorGenome genomeA = ReactorGenome.fromReactor(config, reactorA);
-        ReactorGenome genomeB = ReactorGenome.fromReactor(config, reactorB);
+        ReactorGenome genomeA = ReactorGenome.fromReactor(config, reactorA, ComponentFactory.getInstance());
+        ReactorGenome genomeB = ReactorGenome.fromReactor(config, reactorB, ComponentFactory.getInstance());
 
         // Test
         double speciesSimilarity = ReactorGenome.calculateSimilarity(config, genomeA, genomeB);
@@ -283,15 +284,15 @@ public class ReactorGenomeTest {
         config.speciation.componentsLayoutWeight = 0.15;
 
         // reference reactor
-        Reactor reactorA = new Reactor();
+        Reactor reactorA = new Reactor(ComponentFactory.getInstance());
         reactorA.setCode("erp=N0nc6OU0SvFZnCLVeUv6NTtSGYRuhPMF5/rPVu58BwJq0rGgaqVCookKH7pbJVRL7i32LAM=");
 
         // this reactor has 16/45 component match, with the provided config this should be just over the speciesSimilarityThreshold
-        Reactor reactorB = new Reactor();
+        Reactor reactorB = new Reactor(ComponentFactory.getInstance());
         reactorB.setCode("erp=A3Sdzo5TRK8VmcItV5S/o1O1IZhG6EiX5uNQ4ZZX5RWIRtPH4sQVxSF7yXy/0Rg0aAM=");
 
-        ReactorGenome genomeA = ReactorGenome.fromReactor(config, reactorA);
-        ReactorGenome genomeB = ReactorGenome.fromReactor(config, reactorB);
+        ReactorGenome genomeA = ReactorGenome.fromReactor(config, reactorA, ComponentFactory.getInstance());
+        ReactorGenome genomeB = ReactorGenome.fromReactor(config, reactorB, ComponentFactory.getInstance());
 
         // Test
         double speciesSimilarity = ReactorGenome.calculateSimilarity(config, genomeA, genomeB);
@@ -312,20 +313,20 @@ public class ReactorGenomeTest {
         config.speciation.componentsLayoutWeight = 0.1;
 
         // reference reactor, Dual Fuel Rod (Uranium)
-        Reactor reactorA = new Reactor();
+        Reactor reactorA = new Reactor(ComponentFactory.getInstance());
         reactorA.setCode("erp=N0nc6OU0SvFZnCLVeUv6NTtSGYRuhPMF5/rPVu58BwJq0rGgaqVCookKH7pbJVRL7i32LAM=");
 
         // Dual Fuel Rod (MOX) reactor, should get a similarity score of 0.0
-        Reactor reactorB = new Reactor();
+        Reactor reactorB = new Reactor(ComponentFactory.getInstance());
         reactorB.setCode("erp=AN0nc6OU0Rz6w6jd/pKMVSHSxf7iuIgyxZ8Uu+NPBWGixMLV97mJ0BJ2BrnbiYBXbbzJTAM=");
 
         // Dual Fuel Rod (Uranium) reactor with slightly different fuel placement and different component layout, should be under the threshold for same species
-        Reactor reactorC = new Reactor();
+        Reactor reactorC = new Reactor(ComponentFactory.getInstance());
         reactorC.setCode("erp=N0nc6OUzphbBGTu/kqIVc7xEriE+KThUiL0KKKJxdeoLyJ/WM429Hn73C+GyosGEBgGWLAM=");
 
-        ReactorGenome genomeA = ReactorGenome.fromReactor(config, reactorA);
-        ReactorGenome genomeB = ReactorGenome.fromReactor(config, reactorB);
-        ReactorGenome genomeC = ReactorGenome.fromReactor(config, reactorC);
+        ReactorGenome genomeA = ReactorGenome.fromReactor(config, reactorA, ComponentFactory.getInstance());
+        ReactorGenome genomeB = ReactorGenome.fromReactor(config, reactorB, ComponentFactory.getInstance());
+        ReactorGenome genomeC = ReactorGenome.fromReactor(config, reactorC, ComponentFactory.getInstance());
 
         // Test
         double speciesSimilarityAB = ReactorGenome.calculateSimilarity(config, genomeA, genomeB);

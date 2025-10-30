@@ -69,12 +69,12 @@ public class AutomationSimulator extends SwingWorker<Void, String> {
                 }
                 for (int row = 0; row < 6; row++) {
                     for (int col = 0; col < 9; col++) {
-                        ReactorItem component = reactor.getComponentAt(row, col);
+                        var component = reactor.getComponentAt(row, col);
                         if (component != null && (component.getMaxHeat() > 1 || component.getMaxDamage() > 1)) {
-                            csvOut.printf(getI18n("CSVData.HeaderComponentName"), component.name, row, col);
+                            csvOut.printf(getI18n("CSVData.HeaderComponentName"), component.getName(), row, col);
                         }
                         if (component != null && component.producesOutput()) {
-                            csvOut.printf(getI18n("CSVData.HeaderComponentOutput"), component.name, row, col);
+                            csvOut.printf(getI18n("CSVData.HeaderComponentOutput"), component.getName(), row, col);
                         }
                     }
                 }

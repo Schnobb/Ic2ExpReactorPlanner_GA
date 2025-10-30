@@ -1,5 +1,6 @@
 package Ic2ExpReactorPlanner;
 
+import Ic2ExpReactorPlanner.old.ComponentFactory;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -16,7 +17,7 @@ public class ReactorSimulatorTest {
         // Setup
         ReactorSimulator simulator = new ReactorSimulator();
 
-        Reactor reactor = new Reactor();
+        Reactor reactor = new Reactor(ComponentFactory.getInstance());
         reactor.setCode(STANDARD_EXPLODY_REACTOR_ERP_CODE);
 
         // Test
@@ -39,10 +40,10 @@ public class ReactorSimulatorTest {
         // Setup
         ReactorSimulator simulator = new ReactorSimulator();
 
-        Reactor reactorA = new Reactor();
+        Reactor reactorA = new Reactor(ComponentFactory.getInstance());
         reactorA.setCode(STANDARD_STABLE_REACTOR_ERP_CODE);
 
-        Reactor reactorB = new Reactor();
+        Reactor reactorB = new Reactor(ComponentFactory.getInstance());
         reactorB.setCode(STANDARD_STABLE_REACTOR_ERP_CODE);
 
         // Test
